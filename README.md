@@ -1,5 +1,5 @@
 # tinysyslog
-[![Go Report Card](http://goreportcard.com/badge/admiralobvious/seau)](http://goreportcard.com/report/admiralobvious/seau)
+[![Go Report Card](http://goreportcard.com/badge/admiralobvious/tinysyslog)](http://goreportcard.com/report/admiralobvious/tinysyslog)
 
 A tiny and simple syslog server with log rotation.
 
