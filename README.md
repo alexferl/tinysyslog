@@ -1,7 +1,7 @@
 # tinysyslog
 [![Go Report Card](http://goreportcard.com/badge/admiralobvious/tinysyslog)](http://goreportcard.com/report/admiralobvious/tinysyslog)
 
-A tiny and simple syslog server with log rotation. tinysyslog was born out of the need for a tiny (the binary is currently <10MB in size), easy to setup and use syslog server that simply writes every incoming log to a file.
+A tiny and simple syslog server with log rotation. tinysyslog was born out of the need for a tiny (the binary is currently <10MB in size), easy to setup and use syslog server that simply writes every incoming log (RFC5424 format) to a file.
 
 ## Quickstart
 tinysyslog requires golang to work.
