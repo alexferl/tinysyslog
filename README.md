@@ -5,6 +5,7 @@ A tiny and simple syslog server with log rotation. tinysyslog was born out of th
 
 ## Quickstart
 tinysyslog requires golang to work.
+
 To install it on OS X:
 
     brew install go
