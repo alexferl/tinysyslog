@@ -97,7 +97,7 @@ Sink to save logs to. (default "filesystem")
 Type of socket to use, TCP or UDP. If no type is specified, both are used. (default "")
 
 ## Benchmarks
-Nothing scientific here but with a simple client consisting of a for loop sending large messages over UDP:
+Nothing scientific here but with a simple client consisting of a for loop sending large messages as fast as possible over UDP:
 
 `iostat -d 5`
 ```
