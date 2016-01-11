@@ -29,7 +29,7 @@ type Filesystem struct {
 // NewConfig creates a Config instance
 func NewConfig() *Config {
 	cnf := Config{
-		Address: "0.0.0.0:5140",
+		Address: "127.0.0.1:5140",
 		Filesystem: Filesystem{
 			Filename:   "syslog.log",
 			MaxAge:     30,
@@ -48,7 +48,7 @@ func NewConfig() *Config {
 // AddFlags adds all the flags from the command line and the config file
 func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.Address, "address", cnf.Address, "IP and port to listen on.")
-	fs.StringVar(&cnf.Filesystem.Filename, "filesystem-filename", cnf.Filesystem.Filename, "File to log to.")
+	fs.StringVar(&cnf.Filesystem.Filename, "filesystem-filename", cnf.Filesystem.Filename, "File to write incoming logs to.")
 	fs.IntVar(&cnf.Filesystem.MaxAge, "filesystem-max-age", cnf.Filesystem.MaxAge,
 		"Maximum age (in days) before a log is deleted. Set to '0' to disable.")
 	fs.IntVar(&cnf.Filesystem.MaxBackups, "filesystem-max-backups", cnf.Filesystem.MaxBackups,
@@ -63,7 +63,7 @@ func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 		"Valid level names are: debug, info, warning, error and critical.")
 	fs.StringVar(&cnf.SinkType, "sink-type", cnf.SinkType, "Sink to save logs to.")
 	fs.StringVar(&cnf.SocketType, "socket-type", cnf.SocketType, "Type of socket to use, TCP or UDP."+
-		" If no type is defined, both are used.")
+		" If no type is specified, both are used.")
 }
 
 // wordSepNormalizeFunc changes all flags that contain "_" separators
@@ -77,7 +77,6 @@ func wordSepNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
 // InitFlags normalizes and parses the command line flags
 func (cnf *Config) InitFlags() {
 	viper.BindPFlags(pflag.CommandLine)
-
 	pflag.CommandLine.SetNormalizeFunc(wordSepNormalizeFunc)
 	pflag.Parse()
 }

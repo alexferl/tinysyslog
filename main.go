@@ -10,7 +10,6 @@ func main() {
 	cnf := config.NewConfig()
 	cnf.AddFlags(pflag.CommandLine)
 	cnf.InitFlags()
-
 	InitLogging(cnf)
 
 	server := NewServer(cnf)

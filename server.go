@@ -52,13 +52,14 @@ func (s *Server) Run(_ []string) error {
 	}
 
 	server.Boot()
-	log.Infof("TinySyslog listening on %s", s.config.Address)
+	log.Infof("tinysyslog listening on %s", s.config.Address)
 
 	sink := SinkFactory(s.config)
 
 	go func(channel syslog.LogPartsChannel) {
 		for logParts := range channel {
 			t := logParts["timestamp"].(time.Time)
+			// will eventually need to support user-defined format
 			formatted := fmt.Sprintf("%s %s %s[%s]: %s",
 				t.Format("Jan _2 15:04:05"),
 				logParts["hostname"],
