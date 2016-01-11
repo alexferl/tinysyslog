@@ -95,3 +95,16 @@ Sink to save logs to. (default "filesystem")
 `--socket-type`
 
 Type of socket to use, TCP or UDP. If no type is specified, both are used. (default "")
+
+## Benchmarks
+Nothing scientific here but with a simple client consisting of a for loop sending large messages over UDP:
+
+`iostat -d 5`
+```
+    KB/t tps  MB/s
+  127.61 585 72.95
+  127.66 592 73.74
+  126.41 591 72.98
+  126.36 590 72.76
+  124.76 615 74.95
+```
