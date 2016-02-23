@@ -2,7 +2,7 @@ FROM golang:onbuild
 
 MAINTAINER Alexandre Ferland <aferlandqc@gmail.com>
 
-RUN mkdir /data/logs
+RUN mkdir -p /data/logs
 
 EXPOSE 5140 5140/udp
 
