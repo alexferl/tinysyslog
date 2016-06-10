@@ -1,9 +1,12 @@
-FROM golang:onbuild
+FROM golang
 
-MAINTAINER Alexandre Ferland <aferlandqc@gmail.com>
+ADD . /go/src/github.com/admiralobvious/tinysyslog
 
-RUN mkdir -p /data/logs
+WORKDIR /go/src/github.com/admiralobvious/tinysyslog
+RUN go install
+
+RUN mkdir -p /logs
+
+ENTRYPOINT /go/bin/tinysyslog --address 0.0.0.0:5140 --filesystem-filename /data/logs/syslog.log --log-file stdout --log-format json
 
 EXPOSE 5140 5140/udp
-
-CMD app --address 0.0.0.0:5140 --filesystem-filename /data/logs/syslog.log --log-file stdout
