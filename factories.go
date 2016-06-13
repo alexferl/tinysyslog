@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/admiralobvious/tinysyslog/config"
 	"github.com/admiralobvious/tinysyslog/mutators"
 	"github.com/admiralobvious/tinysyslog/sinks"
@@ -18,6 +20,20 @@ func SinkFactory(cnf *config.Config) sinks.Sink {
 
 	if sinkType == "filesystem" {
 		return sinks.NewFilesystemSink(filename, maxAge, maxBackups, maxSize)
+	}
+
+	output := cnf.Console.Output
+	var stdOutput *os.File
+
+	if sinkType == "console" {
+		if output == "stdout" {
+			stdOutput = os.Stdout
+		} else if output == "stderr" {
+			stdOutput = os.Stderr
+		} else {
+			log.Warningf("Unknown console output type '%s'. Falling back to 'stdout'", output)
+		}
+		return sinks.NewConsoleSink(stdOutput)
 	}
 
 	log.Warningf("Unknown sink type '%s'. Falling back to 'filesystem'", sinkType)

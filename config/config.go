@@ -10,6 +10,7 @@ import (
 // Config holds all configuration for our program
 type Config struct {
 	Address     string
+	Console     Console
 	Filesystem  Filesystem
 	LogFile     string
 	LogFormat   string
@@ -28,10 +29,18 @@ type Filesystem struct {
 	OutputFormat string
 }
 
+// Console holds all configuration for the console sink
+type Console struct {
+	Output string
+}
+
 // NewConfig creates a Config instance
 func NewConfig() *Config {
 	cnf := Config{
 		Address: "127.0.0.1:5140",
+		Console: Console{
+			Output: "stdout",
+		},
 		Filesystem: Filesystem{
 			Filename:   "syslog.log",
 			MaxAge:     30,
@@ -51,6 +60,8 @@ func NewConfig() *Config {
 // AddFlags adds all the flags from the command line and the config file
 func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.Address, "address", cnf.Address, "IP and port to listen on.")
+	fs.StringVar(&cnf.Console.Output, "console-output", cnf.Console.Output, "Console to output too. "+
+		"Valid outputs are: stdout, stderr.")
 	fs.StringVar(&cnf.Filesystem.Filename, "filesystem-filename", cnf.Filesystem.Filename, "File to write incoming logs to.")
 	fs.IntVar(&cnf.Filesystem.MaxAge, "filesystem-max-age", cnf.Filesystem.MaxAge,
 		"Maximum age (in days) before a log is deleted. Set to '0' to disable.")
