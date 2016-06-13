@@ -9,21 +9,23 @@ import (
 
 // Config holds all configuration for our program
 type Config struct {
-	Address    string
-	Filesystem Filesystem
-	LogFile    string
-	LogFormat  string
-	LogLevel   string
-	SinkType   string
-	SocketType string
+	Address     string
+	Filesystem  Filesystem
+	LogFile     string
+	LogFormat   string
+	LogLevel    string
+	MutatorType string
+	SinkType    string
+	SocketType  string
 }
 
 // Filesystem holds all configuration for the filesystem sink
 type Filesystem struct {
-	Filename   string
-	MaxAge     int
-	MaxBackups int
-	MaxSize    int
+	Filename     string
+	MaxAge       int
+	MaxBackups   int
+	MaxSize      int
+	OutputFormat string
 }
 
 // NewConfig creates a Config instance
@@ -36,11 +38,12 @@ func NewConfig() *Config {
 			MaxBackups: 10,
 			MaxSize:    100,
 		},
-		LogFile:    "tinysyslog.log",
-		LogFormat:  "text",
-		LogLevel:   "info",
-		SinkType:   "filesystem",
-		SocketType: "",
+		LogFile:     "tinysyslog.log",
+		LogFormat:   "text",
+		LogLevel:    "info",
+		MutatorType: "text",
+		SinkType:    "filesystem",
+		SocketType:  "",
 	}
 	return &cnf
 }
@@ -61,6 +64,7 @@ func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 		"The log format. Valid format values are: text, json.")
 	fs.StringVar(&cnf.LogLevel, "log-level", cnf.LogLevel, "The granularity of log outputs. "+
 		"Valid level names are: debug, info, warning, error and critical.")
+	fs.StringVar(&cnf.MutatorType, "mutator-type", cnf.MutatorType, "Mutator to transform logs as.")
 	fs.StringVar(&cnf.SinkType, "sink-type", cnf.SinkType, "Sink to save logs to.")
 	fs.StringVar(&cnf.SocketType, "socket-type", cnf.SocketType, "Type of socket to use, TCP or UDP."+
 		" If no type is specified, both are used.")

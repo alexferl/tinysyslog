@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"strings"
-	"time"
 
 	"github.com/admiralobvious/tinysyslog/config"
 
@@ -55,18 +53,11 @@ func (s *Server) Run(_ []string) error {
 	log.Infof("tinysyslog listening on %s", s.config.Address)
 
 	sink := SinkFactory(s.config)
+	mutator := MutatorFactory(s.config)
 
 	go func(channel syslog.LogPartsChannel) {
 		for logParts := range channel {
-			t := logParts["timestamp"].(time.Time)
-			// will eventually need to support user-defined format
-			formatted := fmt.Sprintf("%s %s %s[%s]: %s",
-				t.Format("Jan _2 15:04:05"),
-				logParts["hostname"],
-				logParts["app_name"],
-				logParts["proc_id"],
-				logParts["message"])
-
+			formatted := mutator.Mutate(logParts)
 			log.Debugln(formatted)
 			if err := sink.Write([]byte(formatted + "\n")); err != nil {
 				log.Errorln(err)

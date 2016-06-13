@@ -37,13 +37,14 @@ Jan  1 12:01:21 hostname appname[1234]: message
 ## Configuration
 ```
 type Config struct {
-	Address    string
-	Filesystem Filesystem
-	LogFile    string
-	LogFormat  string
-	LogLevel   string
-	SinkType   string
-	SocketType string
+	Address     string
+	Filesystem  Filesystem
+	LogFile     string
+	LogFormat   string
+	LogLevel    string
+	MutatorType string
+	SinkType    string
+	SocketType  string
 }
 
 type Filesystem struct {
@@ -87,6 +88,10 @@ The log format. Valid format values are: text, json. (default "text")
 `--log-level`
 
 The granularity of log outputs. Valid level names are: debug, info, warning, error and critical. (default "info")
+### MutatorType
+`--mutator-type`
+
+Mutator to transform logs as. Valid format values are: text, json. (default "text")
 ### SinkType
 `--sink-type`
 
