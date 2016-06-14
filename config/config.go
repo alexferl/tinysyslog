@@ -20,6 +20,11 @@ type Config struct {
 	SocketType  string
 }
 
+// Console holds all configuration for the console sink
+type Console struct {
+	Output string
+}
+
 // Filesystem holds all configuration for the filesystem sink
 type Filesystem struct {
 	Filename     string
@@ -27,11 +32,6 @@ type Filesystem struct {
 	MaxBackups   int
 	MaxSize      int
 	OutputFormat string
-}
-
-// Console holds all configuration for the console sink
-type Console struct {
-	Output string
 }
 
 // NewConfig creates a Config instance

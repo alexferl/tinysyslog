@@ -38,6 +38,7 @@ Jan  1 12:01:21 hostname appname[1234]: message
 ```
 type Config struct {
 	Address     string
+	Console     Console
 	Filesystem  Filesystem
 	LogFile     string
 	LogFormat   string
@@ -45,6 +46,10 @@ type Config struct {
 	MutatorType string
 	SinkType    string
 	SocketType  string
+}
+
+type Console struct {
+	Output string
 }
 
 type Filesystem struct {
@@ -59,6 +64,11 @@ type Filesystem struct {
 `--address`
 
 IP and port to listen on. (default "127.0.0.1:5140")
+### Console
+#### Output
+`--console-output`
+
+Console to output too. Valid outputs are: stdout, stderr. (default "stdout")
 ### Filesystem
 #### Filename
 `--filesystem-filename`
