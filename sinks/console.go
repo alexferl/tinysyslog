@@ -1,6 +1,7 @@
 package sinks
 
 import (
+	"bufio"
 	"os"
 )
 
@@ -17,11 +18,12 @@ func NewConsoleSink(output *os.File) Sink {
 }
 
 // Write writes to the specified output
-func (fs *ConsoleSink) Write(output []byte) error {
-	_, err := fs.output.Write(output)
+func (cs *ConsoleSink) Write(stdOutput []byte) error {
+	w := bufio.NewWriter(cs.output)
+	defer w.Flush()
+	_, err := w.Write(stdOutput)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

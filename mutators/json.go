@@ -3,6 +3,8 @@ package mutators
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/admiralobvious/tinysyslog/util"
 )
 
 // JSONMutator represents a JSON mutator
@@ -18,11 +20,11 @@ func (jm *JSONMutator) Mutate(logParts map[string]interface{}) string {
 	t := logParts["timestamp"].(time.Time)
 	// will eventually need to support user-defined format
 	m := map[string]interface{}{
-		"timestamp": t.Format("Jan _2 15:04:05"),
+		"timestamp": t.Format(time.RFC3339Nano),
 		"hostname":  logParts["hostname"].(string),
 		"app_name":  logParts["app_name"].(string),
 		"proc_id":   logParts["proc_id"].(string),
-		"severity":  logParts["severity"].(int),
+		"severity":  util.SeverityNumToString(logParts["severity"].(int)),
 		"message":   logParts["message"].(string),
 	}
 	formatted, _ := json.Marshal(m)
