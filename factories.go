@@ -3,26 +3,27 @@ package main
 import (
 	"os"
 
-	"github.com/admiralobvious/tinysyslog/config"
+	"github.com/admiralobvious/tinysyslog/filters"
 	"github.com/admiralobvious/tinysyslog/mutators"
 	"github.com/admiralobvious/tinysyslog/sinks"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // SinkFactory creates a new object with sinks.Sink interface
-func SinkFactory(cnf *config.Config) sinks.Sink {
-	sinkType := cnf.SinkType
-	filename := cnf.Filesystem.Filename
-	maxAge := cnf.Filesystem.MaxAge
-	maxBackups := cnf.Filesystem.MaxBackups
-	maxSize := cnf.Filesystem.MaxSize
+func SinkFactory() sinks.Sink {
+	sinkType := viper.GetString("sink-type")
+	filename := viper.GetString("filesystem-filename")
+	maxAge := viper.GetInt("filesystem-max-age")
+	maxBackups := viper.GetInt("filesystem-max-backups")
+	maxSize := viper.GetInt("filesystem-max-size")
 
 	if sinkType == "filesystem" {
 		return sinks.NewFilesystemSink(filename, maxAge, maxBackups, maxSize)
 	}
 
-	output := cnf.Console.Output
+	output := viper.GetString("console-output")
 	var stdOutput *os.File
 
 	if sinkType == "console" {
@@ -41,8 +42,8 @@ func SinkFactory(cnf *config.Config) sinks.Sink {
 }
 
 // MutatorFactory creates a new object with mutators.Mutator interface
-func MutatorFactory(cnf *config.Config) mutators.Mutator {
-	mutatorType := cnf.MutatorType
+func MutatorFactory() mutators.Mutator {
+	mutatorType := viper.GetString("mutator-type")
 
 	if mutatorType == "text" {
 		return mutators.NewTextMutator()
@@ -54,4 +55,17 @@ func MutatorFactory(cnf *config.Config) mutators.Mutator {
 
 	log.Warningf("Unknown mutator type '%s'. Falling back to 'text'", mutatorType)
 	return mutators.NewTextMutator()
+}
+
+// FilterFactory creates a new object with filters.Filter interface
+func FilterFactory() filters.Filter {
+	filterType := viper.GetString("filter-type")
+
+	if filterType == "regex" {
+		filter := viper.GetString("regex-filter")
+		return filters.NewRegexFilter(filter)
+	}
+
+	log.Warningf("Unknown filter type '%s'. Falling back to 'regex'", filterType)
+	return filters.NewRegexFilter("")
 }

@@ -9,24 +9,26 @@ import (
 
 // Config holds all configuration for our program
 type Config struct {
-	Address     string
-	Console     Console
-	Filesystem  Filesystem
-	LogFile     string
-	LogFormat   string
-	LogLevel    string
-	MutatorType string
-	SinkType    string
-	SocketType  string
+	Address        string
+	ConsoleSink    ConsoleSink
+	FilesystemSink FilesystemSink
+	FilterType     string
+	LogFile        string
+	LogFormat      string
+	LogLevel       string
+	MutatorType    string
+	RegexFilter    RegexFilter
+	SinkType       string
+	SocketType     string
 }
 
-// Console holds all configuration for the console sink
-type Console struct {
+// ConsoleSink holds all configuration for the ConsoleSink sink
+type ConsoleSink struct {
 	Output string
 }
 
-// Filesystem holds all configuration for the filesystem sink
-type Filesystem struct {
+// FilesystemSink holds all configuration for the FilesystemSink sink
+type FilesystemSink struct {
 	Filename     string
 	MaxAge       int
 	MaxBackups   int
@@ -34,25 +36,33 @@ type Filesystem struct {
 	OutputFormat string
 }
 
+type RegexFilter struct {
+	Regex string
+}
+
 // NewConfig creates a Config instance
 func NewConfig() *Config {
 	cnf := Config{
 		Address: "127.0.0.1:5140",
-		Console: Console{
+		ConsoleSink: ConsoleSink{
 			Output: "stdout",
 		},
-		Filesystem: Filesystem{
+		FilesystemSink: FilesystemSink{
 			Filename:   "syslog.log",
 			MaxAge:     30,
 			MaxBackups: 10,
 			MaxSize:    100,
 		},
+		FilterType:  "regex",
 		LogFile:     "tinysyslog.log",
 		LogFormat:   "text",
 		LogLevel:    "info",
 		MutatorType: "text",
-		SinkType:    "filesystem",
-		SocketType:  "",
+		RegexFilter: RegexFilter{
+			Regex: "",
+		},
+		SinkType:   "filesystem",
+		SocketType: "",
 	}
 	return &cnf
 }
@@ -60,22 +70,23 @@ func NewConfig() *Config {
 // AddFlags adds all the flags from the command line and the config file
 func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.Address, "address", cnf.Address, "IP and port to listen on.")
-	fs.StringVar(&cnf.Console.Output, "console-output", cnf.Console.Output, "Console to output too. "+
+	fs.StringVar(&cnf.ConsoleSink.Output, "console-output", cnf.ConsoleSink.Output, "Console to output too. "+
 		"Valid outputs are: stdout, stderr.")
-	fs.StringVar(&cnf.Filesystem.Filename, "filesystem-filename", cnf.Filesystem.Filename, "File to write incoming logs to.")
-	fs.IntVar(&cnf.Filesystem.MaxAge, "filesystem-max-age", cnf.Filesystem.MaxAge,
+	fs.StringVar(&cnf.FilesystemSink.Filename, "filesystem-filename", cnf.FilesystemSink.Filename, "File to write incoming logs to.")
+	fs.IntVar(&cnf.FilesystemSink.MaxAge, "filesystem-max-age", cnf.FilesystemSink.MaxAge,
 		"Maximum age (in days) before a log is deleted. Set to '0' to disable.")
-	fs.IntVar(&cnf.Filesystem.MaxBackups, "filesystem-max-backups", cnf.Filesystem.MaxBackups,
+	fs.IntVar(&cnf.FilesystemSink.MaxBackups, "filesystem-max-backups", cnf.FilesystemSink.MaxBackups,
 		"Maximum backups to keep. Set to '0' to disable.")
-	fs.IntVar(&cnf.Filesystem.MaxSize, "filesystem-max-size", cnf.Filesystem.MaxSize,
+	fs.IntVar(&cnf.FilesystemSink.MaxSize, "filesystem-max-size", cnf.FilesystemSink.MaxSize,
 		"Maximum log size (in megabytes) before it's rotated.")
+	fs.StringVar(&cnf.FilterType, "filter-type", cnf.FilterType, "Filter to filter logs with")
 	fs.StringVar(&cnf.LogFile, "log-file", cnf.LogFile, "The log file to write to. "+
 		"'stdout' means log to stdout and 'stderr' means log to stderr.")
 	fs.StringVar(&cnf.LogFormat, "log-format", cnf.LogFormat,
 		"The log format. Valid format values are: text, json.")
 	fs.StringVar(&cnf.LogLevel, "log-level", cnf.LogLevel, "The granularity of log outputs. "+
 		"Valid level names are: debug, info, warning, error and critical.")
-	fs.StringVar(&cnf.MutatorType, "mutator-type", cnf.MutatorType, "Mutator to transform logs as.")
+	fs.StringVar(&cnf.RegexFilter.Regex, "regex-filter", cnf.RegexFilter.Regex, "Regex to filter with.")
 	fs.StringVar(&cnf.SinkType, "sink-type", cnf.SinkType, "Sink to save logs to.")
 	fs.StringVar(&cnf.SocketType, "socket-type", cnf.SocketType, "Type of socket to use, TCP or UDP."+
 		" If no type is specified, both are used.")

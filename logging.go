@@ -3,16 +3,15 @@ package main
 import (
 	"os"
 
-	"github.com/admiralobvious/tinysyslog/config"
-
 	log "github.com/Sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // InitLogging initializes the logger based on the config
-func InitLogging(cnf *config.Config) {
-	logFile := cnf.LogFile
-	logFormat := cnf.LogFormat
-	logLevel := cnf.LogLevel
+func InitLogging() {
+	logFile := viper.GetString("log-file")
+	logFormat := viper.GetString("log-format")
+	logLevel := viper.GetString("log-level")
 
 	switch logFile {
 	case "stdout":
