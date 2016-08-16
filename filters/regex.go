@@ -29,5 +29,5 @@ func (rf *RegexFilter) Filter(data string) string {
 			return ""
 		}
 	}
-	return ""
+	return data
 }
