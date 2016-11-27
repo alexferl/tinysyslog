@@ -36,6 +36,7 @@ type FilesystemSink struct {
 	OutputFormat string
 }
 
+// RegexFilter holds regex configuration
 type RegexFilter struct {
 	Regex string
 }
@@ -68,7 +69,7 @@ func NewConfig() *Config {
 }
 
 // AddFlags adds all the flags from the command line and the config file
-func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
+func (cnf *Config) addFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.Address, "address", cnf.Address, "IP and port to listen on.")
 	fs.StringVar(&cnf.ConsoleSink.Output, "console-output", cnf.ConsoleSink.Output, "Console to output too. "+
 		"Valid outputs are: stdout, stderr.")

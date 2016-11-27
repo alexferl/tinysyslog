@@ -11,6 +11,7 @@ var severities = map[int]string{
 	7: "DEBUG",
 }
 
+// SeverityNumToString converts a severity number to its string representation
 func SeverityNumToString(severity int) string {
 	switch severity {
 	case 0:

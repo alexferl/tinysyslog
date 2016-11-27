@@ -25,9 +25,8 @@ func (rf *RegexFilter) Filter(data string) string {
 		}
 		if m != true {
 			return data
-		} else {
-			return ""
 		}
+		return ""
 	}
 	return data
 }
