@@ -4,17 +4,7 @@
 A tiny and simple syslog server with log rotation. tinysyslog was born out of the need for a tiny (the binary is currently <10MB in size), easy to setup and use syslog server that simply writes every incoming log (RFC5424 format) to a file that is automatically rotated. tinysyslog is based on [go-syslog](https://github.com/mcuadros/go-syslog) and [lumberjack](https://github.com/natefinch/lumberjack).
 
 ## Quickstart
-tinysyslog requires golang to work.
-
-To install it on OS X:
-
-    brew install go
-On Ubuntu/Debian:
-
-    sudo apt-get install golang
-You will also need to set the GOPATH, see: https://golang.org/doc/code.html#GOPATH
-
-To install tinysyslog itself:
+To install tinysyslog:
 
     go get -u github.com/admiralobvious/tinysyslog
 And then to run it (from your $GOPATH/bin folder):
