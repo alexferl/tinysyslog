@@ -86,6 +86,7 @@ func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 		"The log format. Valid format values are: text, json.")
 	fs.StringVar(&cnf.LogLevel, "log-level", cnf.LogLevel, "The granularity of log outputs. "+
 		"Valid level names are: debug, info, warning, error and critical.")
+	fs.StringVar(&cnf.MutatorType, "mutator-type", cnf.MutatorType, "Mutator type to use.")
 	fs.StringVar(&cnf.RegexFilter.Regex, "regex-filter", cnf.RegexFilter.Regex, "Regex to filter with.")
 	fs.StringVar(&cnf.SinkType, "sink-type", cnf.SinkType, "Sink to save logs to.")
 	fs.StringVar(&cnf.SocketType, "socket-type", cnf.SocketType, "Type of socket to use, TCP or UDP."+
