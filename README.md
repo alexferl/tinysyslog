@@ -26,80 +26,22 @@ Jan  1 12:01:21 hostname appname[1234]: message
 
 ## Configuration
 ```
-type Config struct {
-	Address     string
-	Console     Console
-	Filesystem  Filesystem
-	LogFile     string
-	LogFormat   string
-	LogLevel    string
-	MutatorType string
-	SinkType    string
-	SocketType  string
-}
-
-type Console struct {
-	Output string
-}
-
-type Filesystem struct {
-	Filename   string
-	MaxAge     int
-	MaxBackups int
-	MaxSize    int
-}
+Usage of ./tinysyslog:
+      --address string               IP and port to listen on. (default "127.0.0.1:5140")
+      --console-output string        Console to output too. Valid outputs are: stdout, stderr. (default "stdout")
+      --filesystem-filename string   File to write incoming logs to. (default "syslog.log")
+      --filesystem-max-age int       Maximum age (in days) before a log is deleted. (default 30)
+      --filesystem-max-backups int   Maximum backups to keep. (default 10)
+      --filesystem-max-size int      Maximum log size (in megabytes) before it's rotated. (default 100)
+      --filter-type string           Filter to filter logs with. Valid filters are: regex. (default "regex")
+      --log-file string              The log file to write to. 'stdout' means log to stdout and 'stderr' means log to stderr. (default "tinysyslog.log")
+      --log-format string            The log format. Valid format values are: text, json. (default "text")
+      --log-level string             The granularity of log outputs. Valid level names are: debug, info, warning, error and critical. (default "info")
+      --mutator-type string          Mutator type to use. Valid mutators are: text, json. (default "text")
+      --regex-filter string          Regex to filter with. No filtering by default.
+      --sink-type string             Sink to save logs to. Valid sinks are: console, filesystem. (default "filesystem")
+      --socket-type string           Type of socket to use, TCP or UDP. If no type is specified, both are used.
 ```
-
-### Address
-`--address`
-
-IP and port to listen on. (default "127.0.0.1:5140")
-### Console
-#### Output
-`--console-output`
-
-Console to output too. Valid outputs are: stdout, stderr. (default "stdout")
-### Filesystem
-#### Filename
-`--filesystem-filename`
-
-File to write incoming logs to. (default "syslog.log")
-#### MaxAge
-`--filesystem-max-age`
-
-Maximum age (in days) before a log is deleted. Set to '0' to disable. (default 30)
-#### MaxBackups
-`--filesystem-max-backups`
-
-Maximum backups to keep. Set to '0' to disable. (default 10)
-#### MaxSize
-`--filesystem-max-size`
-
-Maximum log size (in megabytes) before it's rotated. (default 100)
-### LogFile
-`--log-file`
-
-The log file to write to. 'stdout' means log to stdout and 'stderr' means log to stderr. (default "tinysyslog.log")
-### LogFormat
-`--log-format`
-
-The log format. Valid format values are: text, json. (default "text")
-### LogLevel
-`--log-level`
-
-The granularity of log outputs. Valid level names are: debug, info, warning, error and critical. (default "info")
-### MutatorType
-`--mutator-type`
-
-Mutator to transform logs as. Valid format values are: text, json. (default "text")
-### SinkType
-`--sink-type`
-
-Sink to save logs to. (default "filesystem")
-### SocketType
-`--socket-type`
-
-Type of socket to use, TCP or UDP. If no type is specified, both are used. (default "")
 
 ## Benchmarks
 Nothing scientific here but with a simple client consisting of a for loop sending large messages as fast as possible over UDP:
