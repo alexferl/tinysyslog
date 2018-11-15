@@ -2,8 +2,6 @@ package filters
 
 import (
 	"regexp"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 // RegexFilter represents a regex filter
@@ -17,16 +15,16 @@ func NewRegexFilter(s string) Filter {
 }
 
 // Filter filters a log entry
-func (rf *RegexFilter) Filter(data string) string {
+func (rf *RegexFilter) Filter(data string) (string, error) {
 	if len(rf.regex) > 0 {
 		m, err := regexp.MatchString(rf.regex, data)
 		if err != nil {
-			log.Error(err)
+			return "", err
 		}
 		if m != true {
-			return data
+			return data, nil
 		}
-		return ""
+		return "", nil
 	}
-	return data
+	return data, nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/admiralobvious/tinysyslog/config"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -22,5 +23,8 @@ func main() {
 	InitLogging()
 
 	server := NewServer()
-	server.Run()
+	err := server.Run()
+	if err != nil {
+		logrus.Fatalf("Error starting server: %v", err)
+	}
 }

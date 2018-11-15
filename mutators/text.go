@@ -14,7 +14,7 @@ func NewTextMutator() Mutator {
 }
 
 // Mutate mutates a slice of bytes
-func (tm *TextMutator) Mutate(logParts map[string]interface{}) string {
+func (tm *TextMutator) Mutate(logParts map[string]interface{}) (string, error) {
 	t := logParts["timestamp"].(time.Time)
 	// will eventually need to support user-defined format
 	formatted := fmt.Sprintf("%s %s %s[%s]: %s",
@@ -23,5 +23,5 @@ func (tm *TextMutator) Mutate(logParts map[string]interface{}) string {
 		logParts["app_name"],
 		logParts["proc_id"],
 		logParts["message"])
-	return formatted
+	return formatted, nil
 }

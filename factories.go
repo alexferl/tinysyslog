@@ -7,7 +7,7 @@ import (
 	"github.com/admiralobvious/tinysyslog/mutators"
 	"github.com/admiralobvious/tinysyslog/sinks"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -20,6 +20,7 @@ func SinkFactory() sinks.Sink {
 	maxSize := viper.GetInt("filesystem-max-size")
 
 	if sinkType == "filesystem" {
+		logrus.Debugf("Using sink type '%s'", sinkType)
 		return sinks.NewFilesystemSink(filename, maxAge, maxBackups, maxSize)
 	}
 
@@ -32,12 +33,13 @@ func SinkFactory() sinks.Sink {
 		} else if output == "stderr" {
 			stdOutput = os.Stderr
 		} else {
-			log.Warningf("Unknown console output type '%s'. Falling back to 'stdout'", output)
+			logrus.Warningf("Unknown console output type '%s'. Falling back to 'stdout'", output)
 		}
+		logrus.Debugf("Using sink type '%s'", sinkType)
 		return sinks.NewConsoleSink(stdOutput)
 	}
 
-	log.Warningf("Unknown sink type '%s'. Falling back to 'filesystem'", sinkType)
+	logrus.Warningf("Unknown sink type '%s'. Falling back to 'filesystem'", sinkType)
 	return sinks.NewFilesystemSink(filename, maxAge, maxBackups, maxSize)
 }
 
@@ -46,14 +48,16 @@ func MutatorFactory() mutators.Mutator {
 	mutatorType := viper.GetString("mutator-type")
 
 	if mutatorType == "text" {
+		logrus.Debugf("Using mutator type '%s'", mutatorType)
 		return mutators.NewTextMutator()
 	}
 
 	if mutatorType == "json" {
+		logrus.Debugf("Using mutator type '%s'", mutatorType)
 		return mutators.NewJSONMutator()
 	}
 
-	log.Warningf("Unknown mutator type '%s'. Falling back to 'text'", mutatorType)
+	logrus.Warningf("Unknown mutator type '%s'. Falling back to 'text'", mutatorType)
 	return mutators.NewTextMutator()
 }
 
@@ -61,11 +65,17 @@ func MutatorFactory() mutators.Mutator {
 func FilterFactory() filters.Filter {
 	filterType := viper.GetString("filter-type")
 
+	if filterType == "" || filterType == "null" {
+		logrus.Debugf("Using filter type '%s'", filterType)
+		return filters.NewNullFilter()
+	}
+
 	if filterType == "regex" {
 		filter := viper.GetString("regex-filter")
+		logrus.Debugf("Using filter type '%s' with filter '%s'", filterType, filter)
 		return filters.NewRegexFilter(filter)
 	}
 
-	log.Warningf("Unknown filter type '%s'. Falling back to 'regex'", filterType)
-	return filters.NewRegexFilter("")
+	logrus.Warningf("Unknown filter type '%s'. Falling back to 'null'", filterType)
+	return filters.NewNullFilter()
 }

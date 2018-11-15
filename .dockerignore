@@ -3,6 +3,6 @@
 .gitignore
 .idea
 LICENSE
-README
+README*
 tinysyslog
 vendor

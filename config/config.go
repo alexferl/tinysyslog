@@ -54,15 +54,15 @@ func NewConfig() *Config {
 			MaxBackups: 10,
 			MaxSize:    100,
 		},
-		FilterType:  "regex",
-		LogFile:     "tinysyslog.log",
+		FilterType:  "",
+		LogFile:     "stdout",
 		LogFormat:   "text",
 		LogLevel:    "info",
 		MutatorType: "text",
 		RegexFilter: RegexFilter{
 			Regex: "",
 		},
-		SinkType:   "filesystem",
+		SinkType:   "console",
 		SocketType: "",
 	}
 	return &cnf
@@ -71,23 +71,24 @@ func NewConfig() *Config {
 // AddFlags adds all the flags from the command line and the config file
 func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.Address, "address", cnf.Address, "IP and port to listen on.")
-	fs.StringVar(&cnf.ConsoleSink.Output, "console-output", cnf.ConsoleSink.Output, "Console to output too. "+
-		"Valid outputs are: stdout, stderr.")
-	fs.StringVar(&cnf.FilesystemSink.Filename, "filesystem-filename", cnf.FilesystemSink.Filename, "File to write incoming logs to.")
-	fs.IntVar(&cnf.FilesystemSink.MaxAge, "filesystem-max-age", cnf.FilesystemSink.MaxAge,
-		"Maximum age (in days) before a log is deleted.")
-	fs.IntVar(&cnf.FilesystemSink.MaxBackups, "filesystem-max-backups", cnf.FilesystemSink.MaxBackups, "Maximum backups to keep.")
-	fs.IntVar(&cnf.FilesystemSink.MaxSize, "filesystem-max-size", cnf.FilesystemSink.MaxSize,
-		"Maximum log size (in megabytes) before it's rotated.")
-	fs.StringVar(&cnf.FilterType, "filter-type", cnf.FilterType, "Filter to filter logs with. Valid filters are: regex.")
+	fs.StringVar(&cnf.FilterType, "filter", cnf.FilterType, "Filter to filter logs with. Valid filters are: null and regex. " +
+		"Null doesn't do any filtering.")
+	fs.StringVar(&cnf.RegexFilter.Regex, "filter-regex-filter", cnf.RegexFilter.Regex, "Regex to filter with. No filtering by default.")
 	fs.StringVar(&cnf.LogFile, "log-file", cnf.LogFile, "The log file to write to. "+
 		"'stdout' means log to stdout and 'stderr' means log to stderr.")
 	fs.StringVar(&cnf.LogFormat, "log-format", cnf.LogFormat, "The log format. Valid format values are: text, json.")
 	fs.StringVar(&cnf.LogLevel, "log-level", cnf.LogLevel, "The granularity of log outputs. "+
 		"Valid level names are: debug, info, warning, error and critical.")
-	fs.StringVar(&cnf.MutatorType, "mutator-type", cnf.MutatorType, "Mutator type to use. Valid mutators are: text, json.")
-	fs.StringVar(&cnf.RegexFilter.Regex, "regex-filter", cnf.RegexFilter.Regex, "Regex to filter with. No filtering by default.")
-	fs.StringVar(&cnf.SinkType, "sink-type", cnf.SinkType, "Sink to save logs to. Valid sinks are: console, filesystem.")
+	fs.StringVar(&cnf.MutatorType, "mutator", cnf.MutatorType, "Mutator type to use. Valid mutators are: text, json.")
+	fs.StringVar(&cnf.SinkType, "sink", cnf.SinkType, "Sink to save syslogs to. Valid sinks are: console and filesystem.")
+	fs.StringVar(&cnf.ConsoleSink.Output, "sink-console-output", cnf.ConsoleSink.Output, "Console to output too. "+
+		"Valid outputs are: stdout, stderr.")
+	fs.StringVar(&cnf.FilesystemSink.Filename, "sink-filesystem-filename", cnf.FilesystemSink.Filename, "File to write incoming logs to.")
+	fs.IntVar(&cnf.FilesystemSink.MaxAge, "sink-filesystem-max-age", cnf.FilesystemSink.MaxAge,
+		"Maximum age (in days) before a log is deleted.")
+	fs.IntVar(&cnf.FilesystemSink.MaxBackups, "sink-filesystem-max-backups", cnf.FilesystemSink.MaxBackups, "Maximum backups to keep.")
+	fs.IntVar(&cnf.FilesystemSink.MaxSize, "sink-filesystem-max-size", cnf.FilesystemSink.MaxSize,
+		"Maximum log size (in megabytes) before it's rotated.")
 	fs.StringVar(&cnf.SocketType, "socket-type", cnf.SocketType, "Type of socket to use, TCP or UDP."+
 		" If no type is specified, both are used.")
 }

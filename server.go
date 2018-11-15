@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gopkg.in/mcuadros/go-syslog.v2"
 )
@@ -31,23 +31,26 @@ func (s *Server) Run() error {
 	switch strings.ToLower(viper.GetString("socket-type")) {
 	case "tcp":
 		if err := server.ListenTCP(address); err != nil {
-			log.Fatalln(err)
+			return err
 		}
 	case "udp":
 		if err := server.ListenUDP(address); err != nil {
-			log.Fatalln(err)
+			return err
 		}
 	default:
 		if err := server.ListenTCP(address); err != nil {
-			log.Fatalln(err)
+			return err
 		}
 		if err := server.ListenUDP(address); err != nil {
-			log.Fatalln(err)
+			return err
 		}
 	}
 
-	server.Boot()
-	log.Infof("tinysyslog listening on %s", address)
+	err := server.Boot()
+	if err != nil {
+		return err
+	}
+	logrus.Infof("tinysyslog listening on %s", address)
 
 	filter := FilterFactory()
 	sink := SinkFactory()
@@ -55,14 +58,17 @@ func (s *Server) Run() error {
 
 	go func(channel syslog.LogPartsChannel) {
 		for logParts := range channel {
-			formatted := mutator.Mutate(logParts)
-			filtered := formatted
-			if viper.GetString("filter-type") == "regex" {
-				filtered = filter.Filter(formatted)
+			formatted, err := mutator.Mutate(logParts)
+			if err != nil {
+				logrus.Errorf("Error mutating log: %v", err)
+			}
+			filtered, err := filter.Filter(formatted)
+			if err != nil {
+				logrus.Errorf("Error filtering log: %v", err)
 			}
 			if len(filtered) > 0 {
 				if err := sink.Write([]byte(filtered + "\n")); err != nil {
-					log.Errorln(err)
+					logrus.Errorf("Error writing log: %v", err)
 				}
 			}
 		}
