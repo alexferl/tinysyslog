@@ -28,8 +28,8 @@ Jan  1 12:01:21 hostname appname[1234]: message
 ```
 Usage of ./tinysyslog:
       --address string                    IP and port to listen on. (default "127.0.0.1:5140")
-      --filter string                     Filter to filter logs with. Valid filters are: null and regex. Null doesn't do any filtering.
-      --filter-regex-filter string        Regex to filter with. No filtering by default.
+      --filter string                     Filter to filter logs with. Valid filters are: null and regex. Null doesn't do any filtering. (default "null")
+      --filter-regex string               Regex to filter with.
       --log-file string                   The log file to write to. 'stdout' means log to stdout and 'stderr' means log to stderr. (default "stdout")
       --log-format string                 The log format. Valid format values are: text, json. (default "text")
       --log-level string                  The granularity of log outputs. Valid level names are: debug, info, warning, error and critical. (default "info")

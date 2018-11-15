@@ -73,7 +73,7 @@ func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.Address, "address", cnf.Address, "IP and port to listen on.")
 	fs.StringVar(&cnf.FilterType, "filter", cnf.FilterType, "Filter to filter logs with. Valid filters are: null and regex. " +
 		"Null doesn't do any filtering.")
-	fs.StringVar(&cnf.RegexFilter.Regex, "filter-regex-filter", cnf.RegexFilter.Regex, "Regex to filter with. No filtering by default.")
+	fs.StringVar(&cnf.RegexFilter.Regex, "filter-regex", cnf.RegexFilter.Regex, "Regex to filter with.")
 	fs.StringVar(&cnf.LogFile, "log-file", cnf.LogFile, "The log file to write to. "+
 		"'stdout' means log to stdout and 'stderr' means log to stderr.")
 	fs.StringVar(&cnf.LogFormat, "log-format", cnf.LogFormat, "The log format. Valid format values are: text, json.")
