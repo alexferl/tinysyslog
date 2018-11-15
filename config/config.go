@@ -54,7 +54,7 @@ func NewConfig() *Config {
 			MaxBackups: 10,
 			MaxSize:    100,
 		},
-		FilterType:  "",
+		FilterType:  "null",
 		LogFile:     "stdout",
 		LogFormat:   "text",
 		LogLevel:    "info",
