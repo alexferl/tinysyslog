@@ -56,6 +56,9 @@ Make sure the container is running:
 ```
 tinysyslog-6c85886f65-q9cxw          1/1       Running   0          1m
 ```
+
+Confirm the pod started properly:
+
     kubectl logs tinysyslog-6c85886f65-q9cxw
 ```
 time="2018-11-15T20:02:06Z" level=info msg="tinysyslog listening on 0.0.0.0:5140"
