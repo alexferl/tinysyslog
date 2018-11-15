@@ -44,7 +44,24 @@ Confirm the container received it:
 time="2018-11-15T19:40:22Z" level=info msg="tinysyslog listening on 0.0.0.0:5140"
 Jan  1 12:01:21 hostname appname[1234]: message
 ```
-    
+
+## Kubernetes Quickstart
+Apply the manifest to your cluster:
+
+    kubectl apply -f kubernetes/tinysyslog.yaml
+
+Make sure the container is running:
+
+    kubectl get pods | grep tinysyslog
+```
+tinysyslog-6c85886f65-q9cxw          1/1       Running   0          1m
+```
+    kubectl logs tinysyslog-6c85886f65-q9cxw
+```
+time="2018-11-15T20:02:06Z" level=info msg="tinysyslog listening on 0.0.0.0:5140"
+```
+
+You can now send logs from your app(s) to `tinysyslog:5140`.
 
 ## Configuration
 ```
