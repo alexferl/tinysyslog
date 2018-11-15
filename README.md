@@ -24,6 +24,28 @@ You should then see the following output in your terminal:
 Jan  1 12:01:21 hostname appname[1234]: message
 ```
 
+## Docker Quickstart
+Download the image:
+
+    docker pull admiralobvious/tinysyslog
+    
+Start the container:
+
+    docker run --rm --name tinysyslog -p 5140:5140/udp -d admiralobvious/tinysyslog
+
+Send a log:
+
+    nc -w0 127.0.0.1 5140 <<< '<165>1 2016-01-01T12:01:21Z hostname appname 1234 ID47 [exampleSDID@32473 iut="9" eventSource="test" eventID="123"] message'
+
+Confirm the container received it:
+
+    docker logs tinysyslog
+```
+time="2018-11-15T19:40:22Z" level=info msg="tinysyslog listening on 0.0.0.0:5140"
+Jan  1 12:01:21 hostname appname[1234]: message
+```
+    
+
 ## Configuration
 ```
 Usage of ./tinysyslog:
