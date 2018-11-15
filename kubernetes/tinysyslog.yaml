@@ -1,0 +1,50 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: tinysyslog
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      labels:
+        name: tinysyslog
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: default-pool
+      containers:
+      - image: admiralobvious/tinysyslog:latest
+        name: tinysyslog
+        imagePullPolicy: Always
+        ports:
+        - name: syslog-tcp
+          containerPort: 5140
+        - name: syslog-udp
+          containerPort: 5140
+          protocol: UDP
+        resources:
+          limits:
+            cpu: 50m
+            memory: 100Mi
+          requests:
+            cpu: 10m
+            memory: 10Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tinysyslog
+  labels:
+    name: tinysyslog
+spec:
+  selector:
+    name: tinysyslog
+  ports:
+  - name: syslog-tcp
+    port: 5140
+    targetPort: 5140
+  - name: syslog-udp
+    protocol: UDP
+    port: 5140
+    targetPort: 5140
