@@ -13,18 +13,18 @@ import (
 
 // SinkFactory creates a new object with sinks.Sink interface
 func SinkFactory() sinks.Sink {
-	sinkType := viper.GetString("sink-type")
-	filename := viper.GetString("filesystem-filename")
-	maxAge := viper.GetInt("filesystem-max-age")
-	maxBackups := viper.GetInt("filesystem-max-backups")
-	maxSize := viper.GetInt("filesystem-max-size")
+	sinkType := viper.GetString("sink")
+	filename := viper.GetString("sink-filesystem-filename")
+	maxAge := viper.GetInt("sink-filesystem-max-age")
+	maxBackups := viper.GetInt("sink-filesystem-max-backups")
+	maxSize := viper.GetInt("sink-filesystem-max-size")
 
 	if sinkType == "filesystem" {
 		logrus.Debugf("Using sink type '%s'", sinkType)
 		return sinks.NewFilesystemSink(filename, maxAge, maxBackups, maxSize)
 	}
 
-	output := viper.GetString("console-output")
+	output := viper.GetString("sink-console-output")
 	var stdOutput *os.File
 
 	if sinkType == "console" {
@@ -45,7 +45,7 @@ func SinkFactory() sinks.Sink {
 
 // MutatorFactory creates a new object with mutators.Mutator interface
 func MutatorFactory() mutators.Mutator {
-	mutatorType := viper.GetString("mutator-type")
+	mutatorType := viper.GetString("mutator")
 
 	if mutatorType == "text" {
 		logrus.Debugf("Using mutator type '%s'", mutatorType)
@@ -63,7 +63,7 @@ func MutatorFactory() mutators.Mutator {
 
 // FilterFactory creates a new object with filters.Filter interface
 func FilterFactory() filters.Filter {
-	filterType := viper.GetString("filter-type")
+	filterType := viper.GetString("filter")
 
 	if filterType == "" || filterType == "null" {
 		logrus.Debugf("Using filter type '%s'", filterType)
@@ -71,7 +71,7 @@ func FilterFactory() filters.Filter {
 	}
 
 	if filterType == "regex" {
-		filter := viper.GetString("regex-filter")
+		filter := viper.GetString("filter-regex-filter")
 		logrus.Debugf("Using filter type '%s' with filter '%s'", filterType, filter)
 		return filters.NewRegexFilter(filter)
 	}

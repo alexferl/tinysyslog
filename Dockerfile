@@ -1,14 +1,22 @@
-FROM golang:alpine
+FROM golang:1.11.2-alpine as builder
 MAINTAINER Alexandre Ferland <aferlandqc@gmail.com>
+
+ENV GO111MODULE=on
+
+WORKDIR /build
 
 RUN apk add --no-cache git
 
-ADD . /go/src/github.com/admiralobvious/tinysyslog
-WORKDIR /go/src/github.com/admiralobvious/tinysyslog
+COPY go.mod .
+COPY go.sum .
 
-RUN go-wrapper download
-RUN go-wrapper install
+RUN go mod download
 
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+
+FROM scratch
+COPY --from=builder /build/tinysyslog /tinysyslog
 EXPOSE 5140 5140/udp
-
-CMD ["/go/bin/tinysyslog", "--address", "0.0.0.0:5140"]
+ENTRYPOINT ["/tinysyslog", "--address", "0.0.0.0:5140"]
