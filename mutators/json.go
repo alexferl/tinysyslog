@@ -15,17 +15,15 @@ func NewJSONMutator() Mutator {
 	return Mutator(&JSONMutator{})
 }
 
-// Mutate mutates a slice of bytes
-func (jm *JSONMutator) Mutate(logParts map[string]interface{}) (string, error) {
-	t := logParts["timestamp"].(time.Time)
-	// will eventually need to support user-defined format
+// Mutate mutates a Log
+func (jm *JSONMutator) Mutate(log Log) (string, error) {
 	m := map[string]interface{}{
-		"timestamp": t.Format(time.RFC3339Nano),
-		"hostname":  logParts["hostname"].(string),
-		"app_name":  logParts["app_name"].(string),
-		"proc_id":   logParts["proc_id"].(string),
-		"severity":  util.SeverityNumToString(logParts["severity"].(int)),
-		"message":   logParts["message"].(string),
+		"timestamp": log.Timestamp.Format(time.RFC3339Nano),
+		"hostname":  log.Hostname,
+		"app_name":  log.AppName,
+		"proc_id":   log.ProcId,
+		"severity":  util.SeverityNumToString(log.Severity),
+		"message":   log.Message,
 	}
 	formatted, err := json.Marshal(m)
 	if err != nil {

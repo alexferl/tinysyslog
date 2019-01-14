@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/sirupsen/logrus"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -9,22 +10,28 @@ import (
 
 // Config holds all configuration for our program
 type Config struct {
-	Address        string
-	ConsoleSink    ConsoleSink
-	FilesystemSink FilesystemSink
-	FilterType     string
-	LogFile        string
-	LogFormat      string
-	LogLevel       string
-	MutatorType    string
-	RegexFilter    RegexFilter
-	SinkType       string
-	SocketType     string
+	Address           string
+	ConsoleSink       ConsoleSink
+	ElasticSearchSink ElasticSearchSink
+	FilesystemSink    FilesystemSink
+	FilterType        string
+	LogFile           string
+	LogFormat         string
+	LogLevel          string
+	MutatorType       string
+	RegexFilter       RegexFilter
+	SinkTypes         []string
+	SocketType        string
 }
 
 // ConsoleSink holds all configuration for the ConsoleSink sink
 type ConsoleSink struct {
 	Output string
+}
+
+type ElasticSearchSink struct {
+	Address   string
+	IndexName string
 }
 
 // FilesystemSink holds all configuration for the FilesystemSink sink
@@ -48,6 +55,10 @@ func NewConfig() *Config {
 		ConsoleSink: ConsoleSink{
 			Output: "stdout",
 		},
+		ElasticSearchSink: ElasticSearchSink{
+			Address:   "http://127.0.0.1:9200",
+			IndexName: "tinysyslog",
+		},
 		FilesystemSink: FilesystemSink{
 			Filename:   "syslog.log",
 			MaxAge:     30,
@@ -62,7 +73,7 @@ func NewConfig() *Config {
 		RegexFilter: RegexFilter{
 			Regex: "",
 		},
-		SinkType:   "console",
+		SinkTypes:  []string{"console"},
 		SocketType: "",
 	}
 	return &cnf
@@ -71,7 +82,7 @@ func NewConfig() *Config {
 // AddFlags adds all the flags from the command line and the config file
 func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.Address, "address", cnf.Address, "IP and port to listen on.")
-	fs.StringVar(&cnf.FilterType, "filter", cnf.FilterType, "Filter to filter logs with. Valid filters are: null and regex. " +
+	fs.StringVar(&cnf.FilterType, "filter", cnf.FilterType, "Filter to filter logs with. Valid filters are: null and regex. "+
 		"Null doesn't do any filtering.")
 	fs.StringVar(&cnf.RegexFilter.Regex, "filter-regex", cnf.RegexFilter.Regex, "Regex to filter with.")
 	fs.StringVar(&cnf.LogFile, "log-file", cnf.LogFile, "The log file to write to. "+
@@ -80,9 +91,11 @@ func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.LogLevel, "log-level", cnf.LogLevel, "The granularity of log outputs. "+
 		"Valid level names are: debug, info, warning, error and critical.")
 	fs.StringVar(&cnf.MutatorType, "mutator", cnf.MutatorType, "Mutator type to use. Valid mutators are: text, json.")
-	fs.StringVar(&cnf.SinkType, "sink", cnf.SinkType, "Sink to save syslogs to. Valid sinks are: console and filesystem.")
+	fs.StringSliceVar(&cnf.SinkTypes, "sinks", cnf.SinkTypes, "Sinks to save syslogs to. Valid sinks are: console, elasticsearch and filesystem.")
 	fs.StringVar(&cnf.ConsoleSink.Output, "sink-console-output", cnf.ConsoleSink.Output, "Console to output too. "+
 		"Valid outputs are: stdout, stderr.")
+	fs.StringVar(&cnf.ElasticSearchSink.Address, "sink-elasticsearch-address", cnf.ElasticSearchSink.Address, "Elasticsearch server address.")
+	fs.StringVar(&cnf.ElasticSearchSink.IndexName, "sink-elasticsearch-index-name", cnf.ElasticSearchSink.IndexName, "Elasticsearch index name.")
 	fs.StringVar(&cnf.FilesystemSink.Filename, "sink-filesystem-filename", cnf.FilesystemSink.Filename, "File to write incoming logs to.")
 	fs.IntVar(&cnf.FilesystemSink.MaxAge, "sink-filesystem-max-age", cnf.FilesystemSink.MaxAge,
 		"Maximum age (in days) before a log is deleted.")
@@ -103,7 +116,12 @@ func wordSepNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
 
 // InitFlags normalizes and parses the command line flags
 func (cnf *Config) InitFlags() {
-	viper.BindPFlags(pflag.CommandLine)
+	err := viper.BindPFlags(pflag.CommandLine)
+	if err != nil {
+		logrus.Fatalf("Error binding flags: %v", err)
+		panic(err)
+	}
+
 	pflag.CommandLine.SetNormalizeFunc(wordSepNormalizeFunc)
 	pflag.Parse()
 }

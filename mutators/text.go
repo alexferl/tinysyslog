@@ -2,7 +2,6 @@ package mutators
 
 import (
 	"fmt"
-	"time"
 )
 
 // TextMutator represents a text mutator
@@ -13,15 +12,13 @@ func NewTextMutator() Mutator {
 	return Mutator(&TextMutator{})
 }
 
-// Mutate mutates a slice of bytes
-func (tm *TextMutator) Mutate(logParts map[string]interface{}) (string, error) {
-	t := logParts["timestamp"].(time.Time)
-	// will eventually need to support user-defined format
+// Mutate mutates a Log
+func (tm *TextMutator) Mutate(log Log) (string, error) {
 	formatted := fmt.Sprintf("%s %s %s[%s]: %s",
-		t.Format("Jan _2 15:04:05"),
-		logParts["hostname"],
-		logParts["app_name"],
-		logParts["proc_id"],
-		logParts["message"])
+		log.Timestamp.Format("Jan _2 15:04:05"),
+		log.Hostname,
+		log.AppName,
+		log.ProcId,
+		log.Message)
 	return formatted, nil
 }

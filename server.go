@@ -2,10 +2,13 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gopkg.in/mcuadros/go-syslog.v2"
+
+	"github.com/admiralobvious/tinysyslog/mutators"
 )
 
 // Server holds the config
@@ -53,12 +56,13 @@ func (s *Server) Run() error {
 	logrus.Infof("tinysyslog listening on %s", address)
 
 	filter := FilterFactory()
-	sink := SinkFactory()
+	sinks := SinksFactory()
 	mutator := MutatorFactory()
 
 	go func(channel syslog.LogPartsChannel) {
 		for logParts := range channel {
-			formatted, err := mutator.Mutate(logParts)
+			log := makeLog(logParts)
+			formatted, err := mutator.Mutate(log)
 			if err != nil {
 				logrus.Errorf("Error mutating log: %v", err)
 			}
@@ -67,8 +71,10 @@ func (s *Server) Run() error {
 				logrus.Errorf("Error filtering log: %v", err)
 			}
 			if len(filtered) > 0 {
-				if err := sink.Write([]byte(filtered + "\n")); err != nil {
-					logrus.Errorf("Error writing log: %v", err)
+				for _, sink := range sinks {
+					if err := sink.Write([]byte(filtered + "\n")); err != nil {
+						logrus.Errorf("Error writing log: %v", err)
+					}
 				}
 			}
 		}
@@ -76,4 +82,15 @@ func (s *Server) Run() error {
 
 	server.Wait()
 	return nil
+}
+
+func makeLog(logParts map[string]interface{}) mutators.Log {
+	return mutators.Log{
+		Timestamp: logParts["timestamp"].(time.Time),
+		Hostname:  logParts["hostname"].(string),
+		AppName:   logParts["app_name"].(string),
+		ProcId:    logParts["proc_id"].(string),
+		Severity:  logParts["severity"].(int),
+		Message:   logParts["message"].(string),
+	}
 }
