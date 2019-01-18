@@ -3,11 +3,11 @@ package main
 import (
 	"strings"
 
-	"github.com/admiralobvious/tinysyslog/config"
-
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/admiralobvious/tinysyslog/config"
 )
 
 func main() {

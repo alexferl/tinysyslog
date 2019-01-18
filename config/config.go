@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/sirupsen/logrus"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -15,6 +15,7 @@ type Config struct {
 	ElasticSearchSink ElasticSearchSink
 	FilesystemSink    FilesystemSink
 	FilterType        string
+	GrokFilter        GrokFilter
 	LogFile           string
 	LogFormat         string
 	LogLevel          string
@@ -43,6 +44,12 @@ type FilesystemSink struct {
 	OutputFormat string
 }
 
+// GrokFilter holds grok configuration
+type GrokFilter struct {
+	Fields  []string
+	Pattern string
+}
+
 // RegexFilter holds regex configuration
 type RegexFilter struct {
 	Regex string
@@ -65,7 +72,11 @@ func NewConfig() *Config {
 			MaxBackups: 10,
 			MaxSize:    100,
 		},
-		FilterType:  "null",
+		FilterType: "null",
+		GrokFilter: GrokFilter{
+			Fields:  []string{},
+			Pattern: "",
+		},
 		LogFile:     "stdout",
 		LogFormat:   "text",
 		LogLevel:    "info",
@@ -84,6 +95,8 @@ func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.Address, "address", cnf.Address, "IP and port to listen on.")
 	fs.StringVar(&cnf.FilterType, "filter", cnf.FilterType, "Filter to filter logs with. Valid filters are: null and regex. "+
 		"Null doesn't do any filtering.")
+	fs.StringSliceVar(&cnf.GrokFilter.Fields, "filter-grok-fields", cnf.GrokFilter.Fields, "Grok fields to keep.")
+	fs.StringVar(&cnf.GrokFilter.Pattern, "filter-grok-pattern", cnf.GrokFilter.Pattern, "Grok pattern to filter with.")
 	fs.StringVar(&cnf.RegexFilter.Regex, "filter-regex", cnf.RegexFilter.Regex, "Regex to filter with.")
 	fs.StringVar(&cnf.LogFile, "log-file", cnf.LogFile, "The log file to write to. "+
 		"'stdout' means log to stdout and 'stderr' means log to stderr.")

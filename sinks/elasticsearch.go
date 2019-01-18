@@ -2,6 +2,9 @@ package sinks
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	"github.com/olivere/elastic"
 	"github.com/sirupsen/logrus"
 )
@@ -13,36 +16,6 @@ type ElasticsearchSink struct {
 	Address   string
 	IndexName string
 }
-
-const mapping = `
-{
-	"mappings":{
-		"syslog":{
-			"properties":{
-				"timestamp":{
-					"type":"date"
-				},
-				"hostname":{
-					"type":"keyword"
-				},
-				"app_name":{
-					"type":"keyword"
-				},
-				"proc_id":{
-					"type":"keyword"
-				},
-				"severity":{
-					"type":"keyword"
-				},
-				"message":{
-					"type":"text",
-					"store": true,
-					"fielddata": true
-				}
-			}
-		}
-	}
-}`
 
 // NewElasticsearchSink creates a ElasticsearchSink instance
 func NewElasticsearchSink(address, indexName string) Sink {
@@ -67,22 +40,23 @@ func NewElasticsearchSink(address, indexName string) Sink {
 		logrus.Panicf("Error pinging Elasticsearch: %v", err)
 		panic(err)
 	}
-
 	logrus.Debugf("Elasticsearch returned with code %d and version %s", code, info.Version.Number)
 
-	exists, err := client.IndexExists(es.IndexName).Do(ctx)
+	mapping := fmt.Sprintf(`{"template":"%s-*"}`, es.IndexName)
+
+	exists, err := client.IndexTemplateExists(es.IndexName).Do(ctx)
 	if err != nil {
-		logrus.Panicf("Error checking if index exists: %v", err)
+		logrus.Panicf("Error checking if index template exists: %v", err)
 		panic(err)
 	}
 	if !exists {
-		createIndex, err := client.CreateIndex(es.IndexName).BodyString(mapping).Do(ctx)
+		createIndex, err := client.IndexPutTemplate(es.IndexName).BodyString(mapping).Do(ctx)
 		if err != nil {
-			logrus.Panicf("Error creating index %s: %v", es.IndexName, err)
+			logrus.Panicf("Error creating index template %s: %v", es.IndexName, err)
 			panic(err)
 		}
 		if !createIndex.Acknowledged {
-			logrus.Panicf("Error creating index %s: %v", es.IndexName, err)
+			logrus.Panicf("Error acknowledging index template %s: %v", es.IndexName, err)
 			panic(err)
 		}
 	}
@@ -93,8 +67,8 @@ func NewElasticsearchSink(address, indexName string) Sink {
 // Write writes to an Elasticsearch server
 func (es *ElasticsearchSink) Write(output []byte) error {
 	log, err := es.client.Index().
-		Index(es.IndexName).
-		Type("syslog").
+		Index(es.getCurrentDayIndex()).
+		Type("log").
 		BodyJson(string(output)).
 		Do(es.ctx)
 	if err != nil {
@@ -103,4 +77,9 @@ func (es *ElasticsearchSink) Write(output []byte) error {
 
 	logrus.Debugf("Indexed log %s to index %s, type %s\n", log.Id, log.Index, log.Type)
 	return nil
+}
+
+func (es *ElasticsearchSink) getCurrentDayIndex() string {
+	t := time.Now()
+	return fmt.Sprintf("%s-%s", es.IndexName, t.Format("2006-01-02"))
 }

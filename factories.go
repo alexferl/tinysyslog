@@ -45,6 +45,13 @@ func FilterFactory() filters.Filter {
 		return filters.NewRegexFilter(filter)
 	}
 
+	if filterType == "grok" {
+		pattern := viper.GetString("filter-grok-pattern")
+		fields := viper.GetStringSlice("filter-grok-fields")
+		logrus.Debugf("Using filter type '%s' with pattern '%s'", filterType, pattern)
+		return filters.NewGrokFilter(pattern, fields)
+	}
+
 	logrus.Warningf("Unknown filter type '%s'. Falling back to 'null'", filterType)
 	return filters.NewNullFilter()
 }
