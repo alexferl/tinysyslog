@@ -8,6 +8,7 @@ import (
 	"gopkg.in/mcuadros/go-syslog.v2"
 
 	"github.com/admiralobvious/tinysyslog/mutators"
+	"github.com/admiralobvious/tinysyslog/sinks"
 )
 
 // Server holds the config
@@ -48,15 +49,19 @@ func (s *Server) Run() error {
 		}
 	}
 
+	logrus.Infof("tinysyslog starting")
+
 	err := server.Boot()
 	if err != nil {
 		return err
 	}
-	logrus.Infof("tinysyslog listening on %s", address)
 
 	mutator := MutatorFactory()
 	filter := FilterFactory()
-	sinks := SinksFactory()
+	sinksf := SinksFactory()
+
+	logrus.Infof("tinysyslog listening on %s", address)
+
 
 	go func(channel syslog.LogPartsChannel) {
 		for logParts := range channel {
@@ -76,10 +81,8 @@ func (s *Server) Run() error {
 			}
 
 			if len(filtered) > 0 {
-				for _, sink := range sinks {
-					if err := sink.Write([]byte(filtered + "\n")); err != nil {
-						logrus.Errorf("Error writing log: %v", err)
-					}
+				for _, sink := range sinksf {
+					go write(sink, filtered)
 				}
 			}
 		}
@@ -87,4 +90,13 @@ func (s *Server) Run() error {
 
 	server.Wait()
 	return nil
+}
+
+func write(sink sinks.Sink, msg string) {
+	sinkName := sinks.GetSinkName(sink)
+	if err := sink.Write([]byte(msg + "\n")); err != nil {
+		logrus.Errorf("Error writing log to %s sink: %v", sinkName, err)
+	} else {
+		logrus.Debugf("Wrote log to %s sink", sinkName)
+	}
 }

@@ -2,7 +2,10 @@ package sinks
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"syscall"
 	"time"
 
 	"github.com/olivere/elastic"
@@ -17,6 +20,32 @@ type ElasticsearchSink struct {
 	IndexName string
 }
 
+type Retrier struct {
+	backoff elastic.Backoff
+}
+
+func NewRetrier() *Retrier {
+	return &Retrier{
+		backoff: elastic.NewExponentialBackoff(100 * time.Millisecond, 10 * time.Second),
+	}
+}
+
+func (r *Retrier) Retry(ctx context.Context, retry int, req *http.Request, resp *http.Response, err error) (time.Duration, bool, error) {
+	// Fail hard on a specific error
+	if err == syscall.ECONNREFUSED {
+		return 0, false, errors.New("elasticsearch or network down")
+	}
+
+	// Stop after 5 retries
+	if retry >= 5 {
+		return 0, false, nil
+	}
+
+	// Let the backoff strategy decide how long to wait and whether to stop
+	wait, stop := r.backoff.Next(retry)
+	return wait, stop, nil
+}
+
 // NewElasticsearchSink creates a ElasticsearchSink instance
 func NewElasticsearchSink(address, indexName string) Sink {
 	ctx := context.Background()
@@ -27,7 +56,7 @@ func NewElasticsearchSink(address, indexName string) Sink {
 		IndexName: indexName,
 	}
 
-	client, err := elastic.NewClient(elastic.SetURL(es.Address))
+	client, err := elastic.NewClient(elastic.SetURL(es.Address), elastic.SetRetrier(NewRetrier()),)
 	if err != nil {
 		logrus.Panicf("Error connecting to Elasticsearch (%s): %v", es.Address, err)
 		panic(err)
@@ -75,7 +104,7 @@ func (es *ElasticsearchSink) Write(output []byte) error {
 		return err
 	}
 
-	logrus.Debugf("Indexed log %s to index %s, type %s\n", log.Id, log.Index, log.Type)
+	logrus.Debugf("Elasticsearch indexed log %s to index %s", log.Id, log.Index)
 	return nil
 }
 
