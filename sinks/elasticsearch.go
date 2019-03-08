@@ -26,7 +26,7 @@ type Retrier struct {
 
 func NewRetrier() *Retrier {
 	return &Retrier{
-		backoff: elastic.NewExponentialBackoff(100 * time.Millisecond, 10 * time.Second),
+		backoff: elastic.NewExponentialBackoff(100*time.Millisecond, 10*time.Second),
 	}
 }
 
@@ -56,7 +56,7 @@ func NewElasticsearchSink(address, indexName string) Sink {
 		IndexName: indexName,
 	}
 
-	client, err := elastic.NewClient(elastic.SetURL(es.Address), elastic.SetRetrier(NewRetrier()),)
+	client, err := elastic.NewClient(elastic.SetURL(es.Address), elastic.SetRetrier(NewRetrier()))
 	if err != nil {
 		logrus.Panicf("Error connecting to Elasticsearch (%s): %v", es.Address, err)
 		panic(err)

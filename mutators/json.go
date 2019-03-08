@@ -18,12 +18,19 @@ func NewJSONMutator() Mutator {
 // Mutate mutates a Log
 func (jm *JSONMutator) Mutate(log Log) (string, error) {
 	m := map[string]interface{}{
-		"timestamp": log.Timestamp.Format(time.RFC3339Nano),
-		"hostname":  log.Hostname,
-		"app_name":  log.AppName,
-		"proc_id":   log.ProcId,
-		"severity":  util.SeverityNumToString(log.Severity),
-		"message":   log.Message,
+		"app_name":        log.AppName,
+		"client":          log.Client,
+		"facility":        log.Facility,
+		"hostname":        log.Hostname,
+		"message":         log.Message,
+		"msg_id":          log.MsgID,
+		"priority":        log.Priority,
+		"proc_id":         log.ProcId,
+		"severity":        util.SeverityNumToString(log.Severity),
+		"structured_data": log.StructuredData,
+		"timestamp":       log.Timestamp.Format(time.RFC3339Nano),
+		"tls_peer":        log.TLSPeer,
+		"version":         log.Version,
 	}
 	formatted, err := json.Marshal(m)
 	if err != nil {

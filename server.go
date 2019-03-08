@@ -62,7 +62,6 @@ func (s *Server) Run() error {
 
 	logrus.Infof("tinysyslog listening on %s", address)
 
-
 	go func(channel syslog.LogPartsChannel) {
 		for logParts := range channel {
 			logrus.Debugf("Received log: %v", logParts)
