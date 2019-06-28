@@ -3,7 +3,7 @@ package sinks
 import (
 	"strings"
 
-	"github.com/admiralobvious/tinysyslog/util"
+	"tinysyslog/util"
 )
 
 // Sink a common interface for all sinks

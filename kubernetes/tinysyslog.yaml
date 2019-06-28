@@ -3,13 +3,18 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: tinysyslog
+  labels:
+    component: tinysyslog
 spec:
   replicas: 1
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      component: tinysyslog
   template:
     metadata:
       labels:
-        name: tinysyslog
+        component: tinysyslog
     spec:
       nodeSelector:
         cloud.google.com/gke-nodepool: default-pool
@@ -24,27 +29,25 @@ spec:
           containerPort: 5140
           protocol: UDP
         resources:
-          limits:
-            cpu: 50m
-            memory: 100Mi
           requests:
             cpu: 10m
             memory: 10Mi
+          limits:
+            cpu: 50m
+            memory: 100M
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: tinysyslog
   labels:
-    name: tinysyslog
+    component: tinysyslog
 spec:
-  selector:
-    name: tinysyslog
   ports:
   - name: syslog-tcp
     port: 5140
-    targetPort: 5140
   - name: syslog-udp
     protocol: UDP
     port: 5140
-    targetPort: 5140
+  selector:
+    component: tinysyslog

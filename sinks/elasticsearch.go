@@ -2,10 +2,10 @@ package sinks
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"math"
+	"math/rand"
 	"net/http"
-	"syscall"
 	"time"
 
 	"github.com/olivere/elastic"
@@ -20,30 +20,53 @@ type ElasticsearchSink struct {
 	IndexName string
 }
 
+// Backoff code taken from https://github.com/olivere/elastic/blob/release-branch.v6/backoff.go
+// and modified to retry forever.
+
+// ExponentialBackoff implements the simple exponential backoff described by
+// Douglas Thain at http://dthain.blogspot.de/2009/02/exponential-backoff-in-distributed.html.
+type ExponentialBackoff struct {
+	t float64 // initial timeout (in msec)
+	f float64 // exponential factor (e.g. 2)
+	m float64 // maximum timeout (in msec)
+}
+
+// NewExponentialBackoff returns a ExponentialBackoff backoff policy.
+// Use initialTimeout to set the first/minimal interval
+// and maxTimeout to set the maximum wait interval.
+func NewExponentialBackoff(initialTimeout, maxTimeout time.Duration) *ExponentialBackoff {
+	return &ExponentialBackoff{
+		t: float64(int64(initialTimeout / time.Millisecond)),
+		f: 2.0,
+		m: float64(int64(maxTimeout / time.Millisecond)),
+	}
+}
+
+// Next implements BackoffFunc for ExponentialBackoff.
+func (b *ExponentialBackoff) Next(retry int) (time.Duration, bool) {
+	r := 1.0 + rand.Float64() // random number in [1..2]
+	m := math.Min(r*b.t*math.Pow(b.f, float64(retry)), b.m)
+	d := time.Duration(int64(m)) * time.Millisecond
+	return d, true
+}
+
 type Retrier struct {
 	backoff elastic.Backoff
 }
 
 func NewRetrier() *Retrier {
 	return &Retrier{
-		backoff: elastic.NewExponentialBackoff(100*time.Millisecond, 10*time.Second),
+		backoff: NewExponentialBackoff(500*time.Millisecond, 10*time.Second),
 	}
 }
 
 func (r *Retrier) Retry(ctx context.Context, retry int, req *http.Request, resp *http.Response, err error) (time.Duration, bool, error) {
-	// Fail hard on a specific error
-	if err == syscall.ECONNREFUSED {
-		return 0, false, errors.New("elasticsearch or network down")
-	}
-
-	// Stop after 5 retries
-	if retry >= 5 {
-		return 0, false, nil
-	}
-
 	// Let the backoff strategy decide how long to wait and whether to stop
-	wait, stop := r.backoff.Next(retry)
-	return wait, stop, nil
+	wait, _ := r.backoff.Next(retry)
+
+	logrus.Errorf("ElasticSearch error: %v, retrying in %s", err, wait)
+
+	return wait, true, nil
 }
 
 // NewElasticsearchSink creates a ElasticsearchSink instance

@@ -7,9 +7,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/admiralobvious/tinysyslog/filters"
-	"github.com/admiralobvious/tinysyslog/mutators"
-	"github.com/admiralobvious/tinysyslog/sinks"
+	"tinysyslog/filters"
+	"tinysyslog/mutators"
+	"tinysyslog/sinks"
 )
 
 // MutatorFactory creates a new object with mutators.Mutator interface

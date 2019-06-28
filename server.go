@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/mcuadros/go-syslog.v2"
 
-	"github.com/admiralobvious/tinysyslog/mutators"
-	"github.com/admiralobvious/tinysyslog/sinks"
+	"tinysyslog/mutators"
+	"tinysyslog/sinks"
 )
 
 // Server holds the config
@@ -81,7 +81,7 @@ func (s *Server) Run() error {
 
 			if len(filtered) > 0 {
 				for _, sink := range sinksf {
-					go write(sink, filtered)
+					go write(sink, filtered) // should probably be a worker pool
 				}
 			}
 		}

@@ -69,20 +69,24 @@ You can now send logs from your app(s) to `tinysyslog:5140`.
 ## Configuration
 ```
 Usage of ./tinysyslog:
-      --address string                    IP and port to listen on. (default "127.0.0.1:5140")
-      --filter string                     Filter to filter logs with. Valid filters are: null and regex. Null doesn't do any filtering. (default "null")
-      --filter-regex string               Regex to filter with.
-      --log-file string                   The log file to write to. 'stdout' means log to stdout and 'stderr' means log to stderr. (default "stdout")
-      --log-format string                 The log format. Valid format values are: text, json. (default "text")
-      --log-level string                  The granularity of log outputs. Valid level names are: debug, info, warning, error and critical. (default "info")
-      --mutator string                    Mutator type to use. Valid mutators are: text, json. (default "text")
-      --sink string                       Sink to save syslogs to. Valid sinks are: console and filesystem. (default "console")
-      --sink-console-output string        Console to output too. Valid outputs are: stdout, stderr. (default "stdout")
-      --sink-filesystem-filename string   File to write incoming logs to. (default "syslog.log")
-      --sink-filesystem-max-age int       Maximum age (in days) before a log is deleted. (default 30)
-      --sink-filesystem-max-backups int   Maximum backups to keep. (default 10)
-      --sink-filesystem-max-size int      Maximum log size (in megabytes) before it's rotated. (default 100)
-      --socket-type string                Type of socket to use, TCP or UDP. If no type is specified, both are used.
+      --address string                         IP and port to listen on. (default "127.0.0.1:5140")
+      --filter string                          Filter to filter logs with. Valid filters are: null and regex. Null doesn't do any filtering. (default "null")
+      --filter-grok-fields strings             Grok fields to keep.
+      --filter-grok-pattern string             Grok pattern to filter with.
+      --filter-regex string                    Regex to filter with.
+      --log-file string                        The log file to write to. 'stdout' means log to stdout and 'stderr' means log to stderr. (default "stdout")
+      --log-format string                      The log format. Valid format values are: text, json. (default "text")
+      --log-level string                       The granularity of log outputs. Valid level names are: debug, info, warning, error and critical. (default "info")
+      --mutator string                         Mutator type to use. Valid mutators are: text, json. (default "text")
+      --sink-console-output string             Console to output too. Valid outputs are: stdout, stderr. (default "stdout")
+      --sink-elasticsearch-address string      Elasticsearch server address. (default "http://127.0.0.1:9200")
+      --sink-elasticsearch-index-name string   Elasticsearch index name. (default "tinysyslog")
+      --sink-filesystem-filename string        File to write incoming logs to. (default "syslog.log")
+      --sink-filesystem-max-age int            Maximum age (in days) before a log is deleted. (default 30)
+      --sink-filesystem-max-backups int        Maximum backups to keep. (default 10)
+      --sink-filesystem-max-size int           Maximum log size (in megabytes) before it's rotated. (default 100)
+      --sinks strings                          Sinks to save syslogs to. Valid sinks are: console, elasticsearch and filesystem. (default [console])
+      --socket-type string                     Type of socket to use, TCP or UDP. If no type is specified, both are used.
 ```
 
 ## Benchmarks
