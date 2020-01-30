@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,6 +19,8 @@ type ElasticsearchSink struct {
 	ctx       context.Context
 	Address   string
 	IndexName string
+	Username string
+	Password string
 }
 
 // Backoff code taken from https://github.com/olivere/elastic/blob/release-branch.v6/backoff.go
@@ -70,16 +73,23 @@ func (r *Retrier) Retry(ctx context.Context, retry int, req *http.Request, resp 
 }
 
 // NewElasticsearchSink creates a ElasticsearchSink instance
-func NewElasticsearchSink(address, indexName string) Sink {
+func NewElasticsearchSink(address, indexName, username, password string) Sink {
 	ctx := context.Background()
 
 	es := ElasticsearchSink{
 		Address:   address,
 		ctx:       ctx,
 		IndexName: indexName,
+		Username: username,
+		Password: password,
 	}
 
-	client, err := elastic.NewClient(elastic.SetURL(es.Address), elastic.SetRetrier(NewRetrier()))
+	client, err := elastic.NewClientFromConfig(&config.Config{
+		URL: es.Address,
+		Username: es.Username,
+		Password: es.Password,
+	})
+	elastic.SetRetrier(NewRetrier())
 	if err != nil {
 		logrus.Panicf("Error connecting to Elasticsearch (%s): %v", es.Address, err)
 		panic(err)

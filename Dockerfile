@@ -1,4 +1,4 @@
-FROM golang:1.12.6-alpine as builder
+FROM golang:1.13.7-alpine as builder
 MAINTAINER Alexandre Ferland <aferlandqc@gmail.com>
 
 ENV GO111MODULE=on

@@ -33,6 +33,8 @@ type ConsoleSink struct {
 type ElasticSearchSink struct {
 	Address   string
 	IndexName string
+	Username string
+	Password string
 }
 
 // FilesystemSink holds all configuration for the FilesystemSink sink
@@ -109,6 +111,8 @@ func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 		"Valid outputs are: stdout, stderr.")
 	fs.StringVar(&cnf.ElasticSearchSink.Address, "sink-elasticsearch-address", cnf.ElasticSearchSink.Address, "Elasticsearch server address.")
 	fs.StringVar(&cnf.ElasticSearchSink.IndexName, "sink-elasticsearch-index-name", cnf.ElasticSearchSink.IndexName, "Elasticsearch index name.")
+	fs.StringVar(&cnf.ElasticSearchSink.Username, "sink-elasticsearch-username", cnf.ElasticSearchSink.Username, "Elasticsearch username.")
+	fs.StringVar(&cnf.ElasticSearchSink.Password, "sink-elasticsearch-password", cnf.ElasticSearchSink.Password, "Elasticsearch password.")
 	fs.StringVar(&cnf.FilesystemSink.Filename, "sink-filesystem-filename", cnf.FilesystemSink.Filename, "File to write incoming logs to.")
 	fs.IntVar(&cnf.FilesystemSink.MaxAge, "sink-filesystem-max-age", cnf.FilesystemSink.MaxAge,
 		"Maximum age (in days) before a log is deleted.")
