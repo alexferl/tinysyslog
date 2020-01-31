@@ -2,6 +2,7 @@ package sinks
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"math"
 	"math/rand"
@@ -15,12 +16,13 @@ import (
 
 // ElasticsearchSink represents an Elasticsearch sink
 type ElasticsearchSink struct {
-	client    *elastic.Client
-	ctx       context.Context
-	Address   string
-	IndexName string
-	Username string
-	Password string
+	client             *elastic.Client
+	ctx                context.Context
+	Address            string
+	IndexName          string
+	Username           string
+	Password           string
+	InsecureSkipVerify bool
 }
 
 // Backoff code taken from https://github.com/olivere/elastic/blob/release-branch.v6/backoff.go
@@ -73,23 +75,33 @@ func (r *Retrier) Retry(ctx context.Context, retry int, req *http.Request, resp 
 }
 
 // NewElasticsearchSink creates a ElasticsearchSink instance
-func NewElasticsearchSink(address, indexName, username, password string) Sink {
+func NewElasticsearchSink(address, indexName, username, password string, insecureSkipVerify bool) Sink {
 	ctx := context.Background()
 
 	es := ElasticsearchSink{
-		Address:   address,
-		ctx:       ctx,
-		IndexName: indexName,
-		Username: username,
-		Password: password,
+		Address:            address,
+		ctx:                ctx,
+		IndexName:          indexName,
+		Username:           username,
+		Password:           password,
+		InsecureSkipVerify: insecureSkipVerify,
 	}
 
 	client, err := elastic.NewClientFromConfig(&config.Config{
-		URL: es.Address,
+		URL:      es.Address,
 		Username: es.Username,
 		Password: es.Password,
 	})
 	elastic.SetRetrier(NewRetrier())
+
+	if insecureSkipVerify {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		httpClient := &http.Client{Transport: tr}
+		elastic.SetHttpClient(httpClient)
+	}
+
 	if err != nil {
 		logrus.Panicf("Error connecting to Elasticsearch (%s): %v", es.Address, err)
 		panic(err)
