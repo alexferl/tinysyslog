@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/olivere/elastic"
-	"github.com/olivere/elastic/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -87,12 +86,11 @@ func NewElasticsearchSink(address, indexName, username, password string, insecur
 		InsecureSkipVerify: insecureSkipVerify,
 	}
 
-	client, err := elastic.NewClientFromConfig(&config.Config{
-		URL:      es.Address,
-		Username: es.Username,
-		Password: es.Password,
-	})
-	elastic.SetRetrier(NewRetrier())
+	client, err := elastic.NewClient(
+		elastic.SetURL(es.Address),
+		elastic.SetBasicAuth(es.Username, es.Password),
+		elastic.SetRetrier(NewRetrier()),
+		)
 
 	if insecureSkipVerify {
 		tr := &http.Transport{
@@ -100,6 +98,7 @@ func NewElasticsearchSink(address, indexName, username, password string, insecur
 		}
 		httpClient := &http.Client{Transport: tr}
 		elastic.SetHttpClient(httpClient)
+		elastic.SetScheme("https")
 	}
 
 	if err != nil {
