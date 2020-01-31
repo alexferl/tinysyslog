@@ -22,6 +22,7 @@ type ElasticsearchSink struct {
 	Username           string
 	Password           string
 	InsecureSkipVerify bool
+	Sniff              bool
 }
 
 // Backoff code taken from https://github.com/olivere/elastic/blob/release-branch.v6/backoff.go
@@ -74,7 +75,7 @@ func (r *Retrier) Retry(ctx context.Context, retry int, req *http.Request, resp 
 }
 
 // NewElasticsearchSink creates a ElasticsearchSink instance
-func NewElasticsearchSink(address, indexName, username, password string, insecureSkipVerify bool) Sink {
+func NewElasticsearchSink(address, indexName, username, password string, insecureSkipVerify, sniff bool) Sink {
 	ctx := context.Background()
 
 	es := ElasticsearchSink{
@@ -84,6 +85,7 @@ func NewElasticsearchSink(address, indexName, username, password string, insecur
 		Username:           username,
 		Password:           password,
 		InsecureSkipVerify: insecureSkipVerify,
+		Sniff:              sniff,
 	}
 
 	tr := &http.Transport{
@@ -92,6 +94,7 @@ func NewElasticsearchSink(address, indexName, username, password string, insecur
 	httpClient := &http.Client{Transport: tr}
 
 	client, err := elastic.NewClient(
+		elastic.SetSniff(es.Sniff),
 		elastic.SetURL(es.Address),
 		elastic.SetHttpClient(httpClient),
 		elastic.SetBasicAuth(es.Username, es.Password),

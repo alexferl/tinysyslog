@@ -36,6 +36,7 @@ type ElasticSearchSink struct {
 	Username           string
 	Password           string
 	InsecureSkipVerify bool
+	DisableSniffing    bool
 }
 
 // FilesystemSink holds all configuration for the FilesystemSink sink
@@ -69,6 +70,7 @@ func NewConfig() *Config {
 			Address:            "http://127.0.0.1:9200",
 			IndexName:          "tinysyslog",
 			InsecureSkipVerify: false,
+			DisableSniffing:    false,
 		},
 		FilesystemSink: FilesystemSink{
 			Filename:   "syslog.log",
@@ -116,6 +118,7 @@ func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&cnf.ElasticSearchSink.Username, "sink-elasticsearch-username", cnf.ElasticSearchSink.Username, "Elasticsearch username.")
 	fs.StringVar(&cnf.ElasticSearchSink.Password, "sink-elasticsearch-password", cnf.ElasticSearchSink.Password, "Elasticsearch password.")
 	fs.BoolVar(&cnf.ElasticSearchSink.InsecureSkipVerify, "sink-elasticsearch-insecure-skip-verify", cnf.ElasticSearchSink.InsecureSkipVerify, "Elasticsearch skip verifying TLS certificates.")
+	fs.BoolVar(&cnf.ElasticSearchSink.DisableSniffing, "sink-elasticsearch-disable-sniffing", cnf.ElasticSearchSink.DisableSniffing, "Elasticsearch disable sniffing process.")
 	fs.StringVar(&cnf.FilesystemSink.Filename, "sink-filesystem-filename", cnf.FilesystemSink.Filename, "File to write incoming logs to.")
 	fs.IntVar(&cnf.FilesystemSink.MaxAge, "sink-filesystem-max-age", cnf.FilesystemSink.MaxAge,
 		"Maximum age (in days) before a log is deleted.")
