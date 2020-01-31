@@ -90,9 +90,10 @@ func SinksFactory() []sinks.Sink {
 			esIndexName := viper.GetString("sink-elasticsearch-index-name")
 			esUsername := viper.GetString("sink-elasticsearch-username")
 			esPassword := viper.GetString("sink-elasticsearch-password")
+			esInsecure := viper.GetBool("sink-elasticsearch-insecure-skip-verify")
 
 			logrus.Debugf("Adding sink type '%s'", sink)
-			es := sinks.NewElasticsearchSink(esAddress, esIndexName, esUsername, esPassword)
+			es := sinks.NewElasticsearchSink(esAddress, esIndexName, esUsername, esPassword, esInsecure)
 			sinksList = append(sinksList, es)
 		case "filesystem":
 			fsFilename := viper.GetString("sink-filesystem-filename")
