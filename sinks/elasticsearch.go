@@ -86,20 +86,17 @@ func NewElasticsearchSink(address, indexName, username, password string, insecur
 		InsecureSkipVerify: insecureSkipVerify,
 	}
 
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: es.InsecureSkipVerify},
+	}
+	httpClient := &http.Client{Transport: tr}
+
 	client, err := elastic.NewClient(
 		elastic.SetURL(es.Address),
+		elastic.SetHttpClient(httpClient),
 		elastic.SetBasicAuth(es.Username, es.Password),
 		elastic.SetRetrier(NewRetrier()),
-		)
-
-	if insecureSkipVerify {
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		httpClient := &http.Client{Transport: tr}
-		elastic.SetHttpClient(httpClient)
-		elastic.SetScheme("https")
-	}
+	)
 
 	if err != nil {
 		logrus.Panicf("Error connecting to Elasticsearch (%s): %v", es.Address, err)
