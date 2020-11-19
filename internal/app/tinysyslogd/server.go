@@ -1,15 +1,32 @@
-package main
+package tinysyslogd
 
 import (
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	xlog "github.com/alexferl/x/log"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"gopkg.in/mcuadros/go-syslog.v2"
 
-	"tinysyslog/mutators"
-	"tinysyslog/sinks"
+	"tinysyslog/internal/pkg"
+	"tinysyslog/internal/pkg/config"
+	"tinysyslog/internal/pkg/mutators"
+	"tinysyslog/internal/pkg/sinks"
 )
+
+func init() {
+	c := config.NewConfig()
+	c.BindFlags()
+	lc := xlog.Config{
+		LogLevel:  viper.GetString("log-level"),
+		LogOutput: viper.GetString("log-output"),
+		LogWriter: viper.GetString("log-writer"),
+	}
+	err := xlog.Init(lc)
+	if err != nil {
+		log.Panic().Msgf("Panic initializing logger: '%v'", err)
+	}
+}
 
 // Server holds the config
 type Server struct {
@@ -29,7 +46,7 @@ func (s *Server) Run() error {
 	server.SetFormat(syslog.RFC5424)
 	server.SetHandler(handler)
 
-	address := viper.GetString("address")
+	address := viper.GetString("bind-address")
 
 	switch strings.ToLower(viper.GetString("socket-type")) {
 	case "tcp":
@@ -49,34 +66,34 @@ func (s *Server) Run() error {
 		}
 	}
 
-	logrus.Infof("tinysyslog starting")
+	log.Info().Msgf("tinysyslog starting")
 
 	err := server.Boot()
 	if err != nil {
 		return err
 	}
 
-	mutator := MutatorFactory()
-	filter := FilterFactory()
-	sinksf := SinksFactory()
+	mutator := pkg.MutatorFactory()
+	filter := pkg.FilterFactory()
+	sinksf := pkg.SinksFactory()
 
-	logrus.Infof("tinysyslog listening on %s", address)
+	log.Info().Msgf("tinysyslog listening on '%s'", address)
 
 	go func(channel syslog.LogPartsChannel) {
 		for logParts := range channel {
-			logrus.Debugf("Received log: %v", logParts)
-			log := mutators.NewLog(logParts)
+			log.Debug().Msgf("Received log: '%v'", logParts)
+			l := mutators.NewLog(logParts)
 
-			mutated, err := mutator.Mutate(log)
-			logrus.Debugf("Mutated log: %v", mutated)
+			mutated, err := mutator.Mutate(l)
+			log.Debug().Msgf("Mutated log: '%v'", mutated)
 			if err != nil {
-				logrus.Errorf("Error mutating log: %v", err)
+				log.Error().Msgf("Error mutating log: '%v'", err)
 			}
 
 			filtered, err := filter.Filter(mutated)
-			logrus.Debugf("Filtered log: %v", filtered)
+			log.Debug().Msgf("Filtered log: '%v'", filtered)
 			if err != nil {
-				logrus.Errorf("Error filtering log: %v", err)
+				log.Error().Msgf("Error filtering log: '%v'", err)
 			}
 
 			if len(filtered) > 0 {
@@ -94,8 +111,8 @@ func (s *Server) Run() error {
 func write(sink sinks.Sink, msg string) {
 	sinkName := sinks.GetSinkName(sink)
 	if err := sink.Write([]byte(msg + "\n")); err != nil {
-		logrus.Errorf("Error writing log to %s sink: %v", sinkName, err)
+		log.Error().Msgf("Error writing log to '%s' sink: '%v'", sinkName, err)
 	} else {
-		logrus.Debugf("Wrote log to %s sink", sinkName)
+		log.Debug().Msgf("Wrote log to '%s' sink", sinkName)
 	}
 }

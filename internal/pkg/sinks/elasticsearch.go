@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/olivere/elastic"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 // ElasticsearchSink represents an Elasticsearch sink
@@ -69,7 +69,7 @@ func (r *Retrier) Retry(ctx context.Context, retry int, req *http.Request, resp 
 	// Let the backoff strategy decide how long to wait and whether to stop
 	wait, _ := r.backoff.Next(retry)
 
-	logrus.Errorf("ElasticSearch error: %v, retrying in %s", err, wait)
+	log.Error().Msgf("ElasticSearch error: '%v', retrying in '%s'", err, wait)
 
 	return wait, true, nil
 }
@@ -102,35 +102,30 @@ func NewElasticsearchSink(address, indexName, username, password string, insecur
 	)
 
 	if err != nil {
-		logrus.Panicf("Error connecting to Elasticsearch (%s): %v", es.Address, err)
-		panic(err)
+		log.Panic().Msgf("Error connecting to Elasticsearch (%s): '%v'", es.Address, err)
 	}
 
 	es.client = client
 
 	info, code, err := es.client.Ping(es.Address).Do(ctx)
 	if err != nil {
-		logrus.Panicf("Error pinging Elasticsearch: %v", err)
-		panic(err)
+		log.Panic().Msgf("Error pinging Elasticsearch: '%v'", err)
 	}
-	logrus.Debugf("Elasticsearch returned with code %d and version %s", code, info.Version.Number)
+	log.Debug().Msgf("Elasticsearch returned with code '%d' and version '%s'", code, info.Version.Number)
 
 	mapping := fmt.Sprintf(`{"template":"%s-*"}`, es.IndexName)
 
 	exists, err := client.IndexTemplateExists(es.IndexName).Do(ctx)
 	if err != nil {
-		logrus.Panicf("Error checking if index template exists: %v", err)
-		panic(err)
+		log.Panic().Msgf("Error checking if index template exists: '%v'", err)
 	}
 	if !exists {
 		createIndex, err := client.IndexPutTemplate(es.IndexName).BodyString(mapping).Do(ctx)
 		if err != nil {
-			logrus.Panicf("Error creating index template %s: %v", es.IndexName, err)
-			panic(err)
+			log.Panic().Msgf("Error creating index template '%s': '%v'", es.IndexName, err)
 		}
 		if !createIndex.Acknowledged {
-			logrus.Panicf("Error acknowledging index template %s: %v", es.IndexName, err)
-			panic(err)
+			log.Panic().Msgf("Error acknowledging index template '%s': '%v'", es.IndexName, err)
 		}
 	}
 
@@ -139,7 +134,7 @@ func NewElasticsearchSink(address, indexName, username, password string, insecur
 
 // Write writes to an Elasticsearch server
 func (es *ElasticsearchSink) Write(output []byte) error {
-	log, err := es.client.Index().
+	r, err := es.client.Index().
 		Index(es.getCurrentDayIndex()).
 		Type("log").
 		BodyJson(string(output)).
@@ -148,7 +143,7 @@ func (es *ElasticsearchSink) Write(output []byte) error {
 		return err
 	}
 
-	logrus.Debugf("Elasticsearch indexed log %s to index %s", log.Id, log.Index)
+	log.Debug().Msgf("Elasticsearch indexed log '%s' to index '%s'", r.Id, r.Index)
 	return nil
 }
 

@@ -1,4 +1,4 @@
-FROM golang:1.13.7-alpine as builder
+FROM golang:1.15.5-alpine as builder
 MAINTAINER Alexandre Ferland <aferlandqc@gmail.com>
 
 ENV GO111MODULE=on
@@ -14,11 +14,11 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ./cmd/tinysyslogd
 
 FROM scratch
-COPY --from=builder /build/tinysyslog /tinysyslog
+COPY --from=builder /build/tinysyslogd /tinysyslogd
 
 EXPOSE 5140 5140/udp
 
-ENTRYPOINT ["/tinysyslog", "--address", "0.0.0.0:5140"]
+ENTRYPOINT ["/tinysyslogd", "--bind-address", "0.0.0.0:5140"]

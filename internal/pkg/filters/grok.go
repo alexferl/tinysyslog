@@ -3,7 +3,7 @@ package filters
 import (
 	"encoding/json"
 
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/vjeantet/grok"
 )
 
@@ -18,8 +18,7 @@ type GrokFilter struct {
 func NewGrokFilter(pattern string, fields []string) Filter {
 	g, err := grok.NewWithConfig(&grok.Config{NamedCapturesOnly: true})
 	if err != nil {
-		logrus.Panicf("Failed to initialize grok: %v", err)
-		panic(err)
+		log.Panic().Msgf("Failed to initialize grok: '%v'", err)
 	}
 
 	return Filter(&GrokFilter{
@@ -31,13 +30,13 @@ func NewGrokFilter(pattern string, fields []string) Filter {
 
 // Filter filters a log entry
 func (gf *GrokFilter) Filter(data string) (string, error) {
-	var log map[string]interface{}
-	err := json.Unmarshal([]byte(data), &log)
+	var logEntry map[string]interface{}
+	err := json.Unmarshal([]byte(data), &logEntry)
 	if err != nil {
 		return "", err
 	}
 
-	values, err := gf.g.Parse(gf.pattern, log["message"].(string))
+	values, err := gf.g.Parse(gf.pattern, logEntry["message"].(string))
 	if err != nil {
 		return "", err
 	}
@@ -45,18 +44,18 @@ func (gf *GrokFilter) Filter(data string) (string, error) {
 	if len(gf.fields) <= 0 {
 		for k, v := range values {
 			if k != "timestamp" {
-				log[k] = v
+				logEntry[k] = v
 			}
 		}
 	} else if len(gf.fields) >= 1 {
 		for k, v := range values {
 			if k != "timestamp" && stringInSlice(k, gf.fields) {
-				log[k] = v
+				logEntry[k] = v
 			}
 		}
 	}
 
-	out, err := json.Marshal(log)
+	out, err := json.Marshal(logEntry)
 	if err != nil {
 		return "", err
 	}

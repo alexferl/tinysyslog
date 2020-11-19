@@ -3,7 +3,7 @@ package sinks
 import (
 	"strings"
 
-	"tinysyslog/util"
+	"tinysyslog/internal/pkg/util"
 )
 
 // Sink a common interface for all sinks

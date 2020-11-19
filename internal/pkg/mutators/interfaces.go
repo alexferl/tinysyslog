@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 // Mutator is a common interface for all mutators
@@ -61,7 +61,7 @@ func parseStructuredData(s string) map[string]string {
 		if at >= 0 {
 			kv := strings.Split(i, "@")
 			if len(kv) < 2 {
-				logrus.Errorf("Error parsing structured data item: %v", i)
+				log.Error().Msgf("Error parsing structured data item: '%v'", i)
 			} else {
 				m[kv[0]] = kv[1]
 			}
@@ -71,7 +71,7 @@ func parseStructuredData(s string) map[string]string {
 		if equal >= 0 {
 			kv := strings.Split(i, "=")
 			if len(kv) < 2 {
-				logrus.Errorf("Error parsing structured data item: %v", i)
+				log.Error().Msgf("Error parsing structured data item: '%v'", i)
 			} else {
 				m[kv[0]] = strings.Replace(kv[1], "\"", "", -1)
 			}

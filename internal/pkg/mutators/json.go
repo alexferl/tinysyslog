@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"tinysyslog/util"
+	"tinysyslog/internal/pkg/util"
 )
 
 // JSONMutator represents a JSON mutator

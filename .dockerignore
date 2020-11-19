@@ -4,5 +4,4 @@
 .idea
 LICENSE
 README*
-tinysyslog
-vendor
+tinysyslogd
