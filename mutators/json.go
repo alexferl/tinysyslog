@@ -7,16 +7,16 @@ import (
 	"tinysyslog/util"
 )
 
-// JSONMutator represents a JSON mutator
-type JSONMutator struct{}
+// JSON represents a JSON mutator
+type JSON struct{}
 
-// NewJSONMutator creates a JSONMutator instance
-func NewJSONMutator() Mutator {
-	return Mutator(&JSONMutator{})
+// NewJSON creates a JSON instance
+func NewJSON() Mutator {
+	return Mutator(&JSON{})
 }
 
 // Mutate mutates a Log
-func (jm *JSONMutator) Mutate(log Log) (string, error) {
+func (j *JSON) Mutate(log Log) (string, error) {
 	m := map[string]interface{}{
 		"app_name":        log.AppName,
 		"client":          log.Client,

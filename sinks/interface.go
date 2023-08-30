@@ -12,7 +12,5 @@ type Sink interface {
 }
 
 func GetSinkName(sink Sink) string {
-	name := util.GetType(sink)
-	s := strings.Split(name, "Sink")
-	return strings.ToLower(s[0])
+	return strings.ToLower(util.GetType(sink))
 }

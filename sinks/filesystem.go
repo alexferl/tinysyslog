@@ -4,13 +4,13 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// FilesystemSink represents a filesystem sink
-type FilesystemSink struct {
+// Filesystem represents a filesystem sink
+type Filesystem struct {
 	logger *lumberjack.Logger
 }
 
-// NewFilesystemSink creates a FilesystemSink instance
-func NewFilesystemSink(filename string, maxAge, maxBackups, maxSize int) Sink {
+// NewFilesystem creates a Filesystem instance
+func NewFilesystem(filename string, maxAge, maxBackups, maxSize int) Sink {
 	logger := &lumberjack.Logger{
 		Filename:   filename,
 		MaxSize:    maxSize,
@@ -18,13 +18,13 @@ func NewFilesystemSink(filename string, maxAge, maxBackups, maxSize int) Sink {
 		MaxAge:     maxAge,
 	}
 
-	return Sink(&FilesystemSink{
+	return Sink(&Filesystem{
 		logger: logger,
 	})
 }
 
 // Write writes to a file
-func (fs *FilesystemSink) Write(output []byte) error {
+func (fs *Filesystem) Write(output []byte) error {
 	_, err := fs.logger.Write(output)
 	if err != nil {
 		return err

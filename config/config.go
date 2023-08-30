@@ -1,21 +1,23 @@
 package config
 
 import (
-	"strings"
+	"fmt"
 
-	"github.com/sirupsen/logrus"
+	libConfig "github.com/alexferl/golib/config"
+	libLog "github.com/alexferl/golib/log"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 // Config holds all configuration for our program
 type Config struct {
-	Address           string
+	Config            *libConfig.Config
+	Logging           *libLog.Config
+	BindAddr          string
 	ConsoleSink       ConsoleSink
 	ElasticSearchSink ElasticSearchSink
 	FilesystemSink    FilesystemSink
 	FilterType        string
-	GrokFilter        GrokFilter
 	LogFile           string
 	LogFormat         string
 	LogLevel          string
@@ -31,12 +33,13 @@ type ConsoleSink struct {
 }
 
 type ElasticSearchSink struct {
-	Address            string
-	IndexName          string
-	Username           string
-	Password           string
-	InsecureSkipVerify bool
-	DisableSniffing    bool
+	Addresses    []string
+	IndexName    string
+	Username     string
+	Password     string
+	CloudID      string
+	APIKey       string
+	ServiceToken string
 }
 
 // FilesystemSink holds all configuration for the FilesystemSink sink
@@ -48,12 +51,6 @@ type FilesystemSink struct {
 	OutputFormat string
 }
 
-// GrokFilter holds grok configuration
-type GrokFilter struct {
-	Fields  []string
-	Pattern string
-}
-
 // RegexFilter holds regex configuration
 type RegexFilter struct {
 	Regex string
@@ -61,16 +58,19 @@ type RegexFilter struct {
 
 // NewConfig creates a Config instance
 func NewConfig() *Config {
-	cnf := Config{
-		Address: "127.0.0.1:5140",
+	c := libConfig.New("TINYSYSLOG")
+	c.AppName = "tinysyslog"
+	c.EnvName = "PROD"
+	return &Config{
+		Config:   c,
+		Logging:  libLog.DefaultConfig,
+		BindAddr: "127.0.0.1:5140",
 		ConsoleSink: ConsoleSink{
 			Output: "stdout",
 		},
 		ElasticSearchSink: ElasticSearchSink{
-			Address:            "http://127.0.0.1:9200",
-			IndexName:          "tinysyslog",
-			InsecureSkipVerify: false,
-			DisableSniffing:    false,
+			Addresses: []string{"http://127.0.0.1:9200"},
+			IndexName: "tinysyslog",
 		},
 		FilesystemSink: FilesystemSink{
 			Filename:   "syslog.log",
@@ -78,11 +78,7 @@ func NewConfig() *Config {
 			MaxBackups: 10,
 			MaxSize:    100,
 		},
-		FilterType: "null",
-		GrokFilter: GrokFilter{
-			Fields:  []string{},
-			Pattern: "",
-		},
+		FilterType:  "",
 		LogFile:     "stdout",
 		LogFormat:   "text",
 		LogLevel:    "info",
@@ -93,58 +89,93 @@ func NewConfig() *Config {
 		SinkTypes:  []string{"console"},
 		SocketType: "",
 	}
-	return &cnf
 }
 
+const (
+	BindAddr = "bind-addr"
+
+	Filter      = "filter"
+	FilterRegex = "filter-regex"
+
+	Mutator = "mutator"
+
+	Sinks = "sinks"
+
+	SinkConsoleOutput = "sink-console-output"
+
+	SinkElasticsearchAddresses    = "sink-elasticsearch-addresses"
+	SinkElasticsearchIndexName    = "sink-elasticsearch-index-name"
+	SinkElasticsearchUsername     = "sink-elasticsearch-username"
+	SinkElasticsearchPassword     = "sink-elasticsearch-password"
+	SinkElasticsearchCloudID      = "sink-elasticsearch-cloud-id"
+	SinkElasticsearchAPIKey       = "sink-elasticsearch-api-key"
+	SinkElasticsearchServiceToken = "sink-elasticsearch-service-token"
+
+	SinkFilesystemFilename   = "sink-filesystem-filename"
+	SinkFilesystemMaxAge     = "sink-filesystem-max-age"
+	SinkFilesystemMaxBackups = "sink-filesystem-max-backups"
+	SinkFilesystemMaxSize    = "sink-filesystem-max-size"
+
+	SocketType = "socket-type"
+)
+
 // AddFlags adds all the flags from the command line and the config file
-func (cnf *Config) AddFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&cnf.Address, "address", cnf.Address, "IP and port to listen on.")
-	fs.StringVar(&cnf.FilterType, "filter", cnf.FilterType, "Filter to filter logs with. Valid filters are: null and regex. "+
-		"Null doesn't do any filtering.")
-	fs.StringSliceVar(&cnf.GrokFilter.Fields, "filter-grok-fields", cnf.GrokFilter.Fields, "Grok fields to keep.")
-	fs.StringVar(&cnf.GrokFilter.Pattern, "filter-grok-pattern", cnf.GrokFilter.Pattern, "Grok pattern to filter with.")
-	fs.StringVar(&cnf.RegexFilter.Regex, "filter-regex", cnf.RegexFilter.Regex, "Regex to filter with.")
-	fs.StringVar(&cnf.LogFile, "log-file", cnf.LogFile, "The log file to write to. "+
-		"'stdout' means log to stdout and 'stderr' means log to stderr.")
-	fs.StringVar(&cnf.LogFormat, "log-format", cnf.LogFormat, "The log format. Valid format values are: text, json.")
-	fs.StringVar(&cnf.LogLevel, "log-level", cnf.LogLevel, "The granularity of log outputs. "+
-		"Valid level names are: debug, info, warning, error and critical.")
-	fs.StringVar(&cnf.MutatorType, "mutator", cnf.MutatorType, "Mutator type to use. Valid mutators are: text, json.")
-	fs.StringSliceVar(&cnf.SinkTypes, "sinks", cnf.SinkTypes, "Sinks to save syslogs to. Valid sinks are: console, elasticsearch and filesystem.")
-	fs.StringVar(&cnf.ConsoleSink.Output, "sink-console-output", cnf.ConsoleSink.Output, "Console to output too. "+
+func (c *Config) addFlags(fs *pflag.FlagSet) {
+	fs.StringVar(&c.BindAddr, BindAddr, c.BindAddr, "IP and port to listen on.")
+	fs.StringVar(&c.FilterType, Filter, c.FilterType,
+		"Filter to filter logs with. Valid filters are: regex.")
+	fs.StringVar(&c.RegexFilter.Regex, FilterRegex, c.RegexFilter.Regex, "Regex to filter with.")
+	fs.StringVar(&c.MutatorType, Mutator, c.MutatorType, "Mutator type to use. Valid mutators are: text, json.")
+	fs.StringSliceVar(&c.SinkTypes, Sinks, c.SinkTypes, "Sinks to save syslogs to. "+
+		"Valid sinks are: console, elasticsearch and filesystem.")
+	fs.StringVar(&c.ConsoleSink.Output, SinkConsoleOutput, c.ConsoleSink.Output, "Console to output too. "+
 		"Valid outputs are: stdout, stderr.")
-	fs.StringVar(&cnf.ElasticSearchSink.Address, "sink-elasticsearch-address", cnf.ElasticSearchSink.Address, "Elasticsearch server address.")
-	fs.StringVar(&cnf.ElasticSearchSink.IndexName, "sink-elasticsearch-index-name", cnf.ElasticSearchSink.IndexName, "Elasticsearch index name.")
-	fs.StringVar(&cnf.ElasticSearchSink.Username, "sink-elasticsearch-username", cnf.ElasticSearchSink.Username, "Elasticsearch username.")
-	fs.StringVar(&cnf.ElasticSearchSink.Password, "sink-elasticsearch-password", cnf.ElasticSearchSink.Password, "Elasticsearch password.")
-	fs.BoolVar(&cnf.ElasticSearchSink.InsecureSkipVerify, "sink-elasticsearch-insecure-skip-verify", cnf.ElasticSearchSink.InsecureSkipVerify, "Elasticsearch skip verifying TLS certificates.")
-	fs.BoolVar(&cnf.ElasticSearchSink.DisableSniffing, "sink-elasticsearch-disable-sniffing", cnf.ElasticSearchSink.DisableSniffing, "Elasticsearch disable sniffing process.")
-	fs.StringVar(&cnf.FilesystemSink.Filename, "sink-filesystem-filename", cnf.FilesystemSink.Filename, "File to write incoming logs to.")
-	fs.IntVar(&cnf.FilesystemSink.MaxAge, "sink-filesystem-max-age", cnf.FilesystemSink.MaxAge,
+	fs.StringSliceVar(&c.ElasticSearchSink.Addresses, SinkElasticsearchAddresses, c.ElasticSearchSink.Addresses,
+		"Elasticsearch server address.")
+	fs.StringVar(&c.ElasticSearchSink.IndexName, SinkElasticsearchIndexName, c.ElasticSearchSink.IndexName,
+		"Elasticsearch index name.")
+	fs.StringVar(&c.ElasticSearchSink.Username, SinkElasticsearchUsername, c.ElasticSearchSink.Username,
+		"Elasticsearch username.")
+	fs.StringVar(&c.ElasticSearchSink.Password, SinkElasticsearchPassword, c.ElasticSearchSink.Password,
+		"Elasticsearch password.")
+	fs.StringVar(&c.ElasticSearchSink.CloudID, SinkElasticsearchCloudID, c.ElasticSearchSink.CloudID,
+		"Elasticsearch cloud id.")
+	fs.StringVar(&c.ElasticSearchSink.APIKey, SinkElasticsearchAPIKey, c.ElasticSearchSink.APIKey,
+		"Elasticsearch api key.")
+	fs.StringVar(&c.ElasticSearchSink.ServiceToken, SinkElasticsearchServiceToken, c.ElasticSearchSink.ServiceToken,
+		"Elasticsearch service token.")
+	fs.StringVar(&c.FilesystemSink.Filename, SinkFilesystemFilename, c.FilesystemSink.Filename,
+		"File to write incoming logs to.")
+	fs.IntVar(&c.FilesystemSink.MaxAge, SinkFilesystemMaxAge, c.FilesystemSink.MaxAge,
 		"Maximum age (in days) before a log is deleted.")
-	fs.IntVar(&cnf.FilesystemSink.MaxBackups, "sink-filesystem-max-backups", cnf.FilesystemSink.MaxBackups, "Maximum backups to keep.")
-	fs.IntVar(&cnf.FilesystemSink.MaxSize, "sink-filesystem-max-size", cnf.FilesystemSink.MaxSize,
+	fs.IntVar(&c.FilesystemSink.MaxBackups, SinkFilesystemMaxBackups, c.FilesystemSink.MaxBackups,
+		"Maximum backups to keep.")
+	fs.IntVar(&c.FilesystemSink.MaxSize, SinkFilesystemMaxSize, c.FilesystemSink.MaxSize,
 		"Maximum log size (in megabytes) before it's rotated.")
-	fs.StringVar(&cnf.SocketType, "socket-type", cnf.SocketType, "Type of socket to use, TCP or UDP."+
+	fs.StringVar(&c.SocketType, SocketType, c.SocketType, "Type of socket to use, TCP or UDP."+
 		" If no type is specified, both are used.")
 }
 
-// wordSepNormalizeFunc changes all flags that contain "_" separators
-func wordSepNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
-	if strings.Contains(name, "_") {
-		return pflag.NormalizedName(strings.Replace(name, "_", "-", -1))
+// BindFlags normalizes and parses the command line flags
+func (c *Config) BindFlags() {
+	if pflag.Parsed() {
+		return
 	}
-	return pflag.NormalizedName(name)
-}
 
-// InitFlags normalizes and parses the command line flags
-func (cnf *Config) InitFlags() {
-	err := viper.BindPFlags(pflag.CommandLine)
+	c.addFlags(pflag.CommandLine)
+	c.Logging.BindFlags(pflag.CommandLine)
+
+	err := c.Config.BindFlags()
 	if err != nil {
-		logrus.Fatalf("Error binding flags: %v", err)
-		panic(err)
+		panic(fmt.Errorf("failed binding flags: %v", err))
 	}
 
-	pflag.CommandLine.SetNormalizeFunc(wordSepNormalizeFunc)
-	pflag.Parse()
+	err = libLog.New(&libLog.Config{
+		LogLevel:  viper.GetString(libLog.LogLevel),
+		LogOutput: viper.GetString(libLog.LogOutput),
+		LogWriter: viper.GetString(libLog.LogWriter),
+	})
+	if err != nil {
+		panic(fmt.Errorf("failed creating logger: %v", err))
+	}
 }

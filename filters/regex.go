@@ -4,20 +4,20 @@ import (
 	"regexp"
 )
 
-// RegexFilter represents a regex filter
-type RegexFilter struct {
+// Regex represents a regex filter
+type Regex struct {
 	regex string
 }
 
-// NewRegexFilter creates a RegexFilter instance
-func NewRegexFilter(s string) Filter {
-	return Filter(&RegexFilter{regex: s})
+// NewRegex creates a Regex instance
+func NewRegex(s string) Filter {
+	return Filter(&Regex{regex: s})
 }
 
 // Filter filters a log entry
-func (rf *RegexFilter) Filter(data string) (string, error) {
-	if len(rf.regex) > 0 {
-		m, err := regexp.MatchString(rf.regex, data)
+func (r *Regex) Filter(data string) (string, error) {
+	if len(r.regex) > 0 {
+		m, err := regexp.MatchString(r.regex, data)
 		if err != nil {
 			return "", err
 		}

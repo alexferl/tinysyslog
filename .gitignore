@@ -25,5 +25,4 @@ _testmain.go
 
 *.log
 .idea
-tinysyslog
-vendor
+tinysyslog-bin

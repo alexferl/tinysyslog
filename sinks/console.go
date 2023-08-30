@@ -5,21 +5,21 @@ import (
 	"os"
 )
 
-// ConsoleSink represents a filesystem sink
-type ConsoleSink struct {
+// Console represents a filesystem sink
+type Console struct {
 	output *os.File
 }
 
-// NewConsoleSink creates a ConsoleSink instance
-func NewConsoleSink(output *os.File) Sink {
-	return Sink(&ConsoleSink{
+// NewConsole creates a Console instance
+func NewConsole(output *os.File) Sink {
+	return Sink(&Console{
 		output: output,
 	})
 }
 
 // Write writes to the specified output
-func (cs *ConsoleSink) Write(stdOutput []byte) error {
-	w := bufio.NewWriter(cs.output)
+func (c *Console) Write(stdOutput []byte) error {
+	w := bufio.NewWriter(c.output)
 	defer w.Flush()
 	_, err := w.Write(stdOutput)
 	if err != nil {

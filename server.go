@@ -1,19 +1,19 @@
-package main
+package tinysyslog
 
 import (
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"gopkg.in/mcuadros/go-syslog.v2"
 
+	"tinysyslog/config"
 	"tinysyslog/mutators"
 	"tinysyslog/sinks"
 )
 
 // Server holds the config
-type Server struct {
-}
+type Server struct{}
 
 // NewServer creates a Server instance
 func NewServer() *Server {
@@ -29,9 +29,9 @@ func (s *Server) Run() error {
 	server.SetFormat(syslog.RFC5424)
 	server.SetHandler(handler)
 
-	address := viper.GetString("address")
+	address := viper.GetString(config.BindAddr)
 
-	switch strings.ToLower(viper.GetString("socket-type")) {
+	switch strings.ToLower(viper.GetString(config.SocketType)) {
 	case "tcp":
 		if err := server.ListenTCP(address); err != nil {
 			return err
@@ -49,7 +49,7 @@ func (s *Server) Run() error {
 		}
 	}
 
-	logrus.Infof("tinysyslog starting")
+	log.Info().Msg("tinysyslog starting")
 
 	err := server.Boot()
 	if err != nil {
@@ -60,28 +60,33 @@ func (s *Server) Run() error {
 	filter := FilterFactory()
 	sinksf := SinksFactory()
 
-	logrus.Infof("tinysyslog listening on %s", address)
+	log.Info().Msgf("tinysyslog listening on %s", address)
 
-	go func(channel syslog.LogPartsChannel) {
-		for logParts := range channel {
-			logrus.Debugf("Received log: %v", logParts)
-			log := mutators.NewLog(logParts)
+	go func(ch syslog.LogPartsChannel) {
+		for logParts := range ch {
+			log.Debug().Msgf("received log: %v", logParts)
+			newLog := mutators.NewLog(logParts)
 
-			mutated, err := mutator.Mutate(log)
-			logrus.Debugf("Mutated log: %v", mutated)
+			mutated, err := mutator.Mutate(newLog)
 			if err != nil {
-				logrus.Errorf("Error mutating log: %v", err)
+				log.Err(err).Msg("error mutating log")
+			} else {
+				log.Debug().Msgf("mutated log: %v", mutated)
 			}
 
-			filtered, err := filter.Filter(mutated)
-			logrus.Debugf("Filtered log: %v", filtered)
-			if err != nil {
-				logrus.Errorf("Error filtering log: %v", err)
+			filtered := mutated
+			if viper.GetString(config.Filter) != "" {
+				filtered, err = filter.Filter(mutated)
+				if err != nil {
+					log.Err(err).Msg("error filtering log")
+				} else {
+					log.Debug().Msgf("filtered log: %v", filtered)
+				}
 			}
 
 			if len(filtered) > 0 {
 				for _, sink := range sinksf {
-					go write(sink, filtered) // should probably be a worker pool
+					go write(sink, filtered)
 				}
 			}
 		}
@@ -94,8 +99,8 @@ func (s *Server) Run() error {
 func write(sink sinks.Sink, msg string) {
 	sinkName := sinks.GetSinkName(sink)
 	if err := sink.Write([]byte(msg + "\n")); err != nil {
-		logrus.Errorf("Error writing log to %s sink: %v", sinkName, err)
+		log.Err(err).Str("sink", sinkName).Msgf("error writing log to sink: %s", sinkName)
 	} else {
-		logrus.Debugf("Wrote log to %s sink", sinkName)
+		log.Debug().Msgf("wrote log to %s sink", sinkName)
 	}
 }

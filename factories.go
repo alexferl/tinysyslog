@@ -1,12 +1,12 @@
-package main
+package tinysyslog
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
+	"tinysyslog/config"
 	"tinysyslog/filters"
 	"tinysyslog/mutators"
 	"tinysyslog/sinks"
@@ -14,59 +14,52 @@ import (
 
 // MutatorFactory creates a new object with mutators.Mutator interface
 func MutatorFactory() mutators.Mutator {
-	mutatorType := viper.GetString("mutator")
+	mutatorType := viper.GetString(config.Mutator)
 
 	if mutatorType == "text" {
-		logrus.Debugf("Using mutator type '%s'", mutatorType)
-		return mutators.NewTextMutator()
+		log.Debug().Msgf("using mutator '%s'", mutatorType)
+		return mutators.NewText()
 	}
 
 	if mutatorType == "json" {
-		logrus.Debugf("Using mutator type '%s'", mutatorType)
-		return mutators.NewJSONMutator()
+		log.Debug().Msgf("using mutator '%s'", mutatorType)
+		return mutators.NewJSON()
 	}
 
-	logrus.Warningf("Unknown mutator type '%s'. Falling back to 'text'", mutatorType)
-	return mutators.NewTextMutator()
+	log.Warn().Msgf("unknown mutator '%s'. Falling back to 'text'", mutatorType)
+	return mutators.NewText()
 }
 
 // FilterFactory creates a new object with filters.Filter interface
 func FilterFactory() filters.Filter {
-	filterType := viper.GetString("filter")
+	filterType := viper.GetString(config.Filter)
 
-	if filterType == "" || filterType == "null" {
-		logrus.Debugf("Using filter type '%s'", filterType)
-		return filters.NewNullFilter()
+	if filterType == "" {
+		log.Debug().Msgf("using no filtering")
+		return filters.NewNoOp()
 	}
 
 	if filterType == "regex" {
-		filter := viper.GetString("filter-regex-filter")
-		logrus.Debugf("Using filter type '%s' with filter '%s'", filterType, filter)
-		return filters.NewRegexFilter(filter)
+		filter := viper.GetString(config.FilterRegex)
+		log.Debug().Msgf("using filter '%s' with regular expression '%s'", filterType, filter)
+		return filters.NewRegex(filter)
 	}
 
-	if filterType == "grok" {
-		pattern := viper.GetString("filter-grok-pattern")
-		fields := viper.GetStringSlice("filter-grok-fields")
-		logrus.Debugf("Using filter type '%s' with pattern '%s'", filterType, pattern)
-		return filters.NewGrokFilter(pattern, fields)
-	}
-
-	logrus.Warningf("Unknown filter type '%s'. Falling back to 'null'", filterType)
-	return filters.NewNullFilter()
+	log.Warn().Msgf("unknown filter '%s', falling back to no filtering")
+	return filters.NewNoOp()
 }
 
 // SinksFactory creates a new slice of objects with sinks.Sink interface
 func SinksFactory() []sinks.Sink {
-	sinkTypes := viper.GetStringSlice("sinks")
-	mutatorType := viper.GetString("mutator")
+	sinkTypes := viper.GetStringSlice(config.Sinks)
+	mutatorType := viper.GetString(config.Mutator)
 
 	var sinksList []sinks.Sink
 
 	for _, sink := range sinkTypes {
 		switch sink {
 		case "console":
-			cOutput := viper.GetString("sink-console-output")
+			cOutput := viper.GetString(config.SinkConsoleOutput)
 			var stdOutput *os.File
 
 			if cOutput == "stdout" {
@@ -74,39 +67,40 @@ func SinksFactory() []sinks.Sink {
 			} else if cOutput == "stderr" {
 				stdOutput = os.Stderr
 			} else {
-				logrus.Warningf("Unknown console output type '%s'. Falling back to 'stdout'", cOutput)
+				log.Warn().Msgf("unknown console output '%s', falling back to 'stdout'", cOutput)
 			}
-			logrus.Debugf("Adding sink type '%s'", sink)
-			cs := sinks.NewConsoleSink(stdOutput)
-			sinksList = append(sinksList, cs)
+			log.Debug().Msgf("adding sink '%s'", sink)
+			c := sinks.NewConsole(stdOutput)
+			sinksList = append(sinksList, c)
 		case "elasticsearch":
 			if mutatorType != "json" {
-				m := fmt.Sprint("Mutator must be 'json' when using 'elasticsearch' sink")
-				logrus.Panic(m)
-				panic(m)
+				log.Panic().Msg("mutator must be 'json' when using 'elasticsearch' sink")
 			}
 
-			esAddress := viper.GetString("sink-elasticsearch-address")
-			esIndexName := viper.GetString("sink-elasticsearch-index-name")
-			esUsername := viper.GetString("sink-elasticsearch-username")
-			esPassword := viper.GetString("sink-elasticsearch-password")
-			esInsecure := viper.GetBool("sink-elasticsearch-insecure-skip-verify")
-			esSniff := viper.GetBool("sink-elasticsearch-disable-sniffing")
+			cfg := sinks.ElasticsearchConfig{
+				IndexName:    viper.GetString(config.SinkElasticsearchIndexName),
+				Addresses:    viper.GetStringSlice(config.SinkElasticsearchAddresses),
+				Username:     viper.GetString(config.SinkElasticsearchUsername),
+				Password:     viper.GetString(config.SinkElasticsearchPassword),
+				CloudID:      viper.GetString(config.SinkElasticsearchCloudID),
+				APIKey:       viper.GetString(config.SinkElasticsearchAPIKey),
+				ServiceToken: viper.GetString(config.SinkElasticsearchServiceToken),
+			}
 
-			logrus.Debugf("Adding sink type '%s'", sink)
-			es := sinks.NewElasticsearchSink(esAddress, esIndexName, esUsername, esPassword, esInsecure, esSniff)
+			log.Debug().Msgf("adding sink type '%s'", sink)
+			es := sinks.NewElasticsearch(cfg)
 			sinksList = append(sinksList, es)
 		case "filesystem":
-			fsFilename := viper.GetString("sink-filesystem-filename")
-			fsMaxAge := viper.GetInt("sink-filesystem-max-age")
-			fsMaxBackups := viper.GetInt("sink-filesystem-max-backups")
-			fsMaxSize := viper.GetInt("sink-filesystem-max-size")
+			fsFilename := viper.GetString(config.SinkFilesystemFilename)
+			fsMaxAge := viper.GetInt(config.SinkFilesystemMaxAge)
+			fsMaxBackups := viper.GetInt(config.SinkFilesystemMaxBackups)
+			fsMaxSize := viper.GetInt(config.SinkFilesystemMaxSize)
 
-			logrus.Debugf("Adding sink type '%s'", sink)
-			fs := sinks.NewFilesystemSink(fsFilename, fsMaxAge, fsMaxBackups, fsMaxSize)
+			log.Debug().Msgf("adding sink '%s'", sink)
+			fs := sinks.NewFilesystem(fsFilename, fsMaxAge, fsMaxBackups, fsMaxSize)
 			sinksList = append(sinksList, fs)
 		default:
-			logrus.Warningf("Unknown sink type '%s'.", sink)
+			log.Warn().Msgf("unknown sink '%s'.", sink)
 		}
 	}
 	return sinksList
