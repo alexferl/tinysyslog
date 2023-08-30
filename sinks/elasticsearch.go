@@ -1,6 +1,7 @@
 package sinks
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"time"
@@ -75,7 +76,7 @@ func (es *Elasticsearch) Write(output []byte) error {
 	ctx, cancel := context.WithTimeout(context.Background(), es.config.Timeout)
 	defer cancel()
 
-	resp, err := es.client.Index(es.getCurrentDayIndex()).Request(string(output)).Do(ctx)
+	resp, err := es.client.Index(es.getCurrentDayIndex()).Raw(bytes.NewReader(output)).Do(ctx)
 	if err != nil {
 		return err
 	}

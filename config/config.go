@@ -69,7 +69,6 @@ func NewConfig() *Config {
 			Output: "stdout",
 		},
 		ElasticSearchSink: ElasticSearchSink{
-			Addresses: []string{"http://127.0.0.1:9200"},
 			IndexName: "tinysyslog",
 		},
 		FilesystemSink: FilesystemSink{

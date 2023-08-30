@@ -2,6 +2,7 @@ package tinysyslog
 
 import (
 	"os"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -79,6 +80,7 @@ func SinksFactory() []sinks.Sink {
 
 			cfg := sinks.ElasticsearchConfig{
 				IndexName:    viper.GetString(config.SinkElasticsearchIndexName),
+				Timeout:      time.Second * 10,
 				Addresses:    viper.GetStringSlice(config.SinkElasticsearchAddresses),
 				Username:     viper.GetString(config.SinkElasticsearchUsername),
 				Password:     viper.GetString(config.SinkElasticsearchPassword),
