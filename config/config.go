@@ -130,7 +130,7 @@ func (c *Config) addFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.ConsoleSink.Output, SinkConsoleOutput, c.ConsoleSink.Output, "Console to output too. "+
 		"Valid outputs are: stdout, stderr.")
 	fs.StringSliceVar(&c.ElasticSearchSink.Addresses, SinkElasticsearchAddresses, c.ElasticSearchSink.Addresses,
-		"Elasticsearch server address.")
+		"Elasticsearch server addresses.")
 	fs.StringVar(&c.ElasticSearchSink.IndexName, SinkElasticsearchIndexName, c.ElasticSearchSink.IndexName,
 		"Elasticsearch index name.")
 	fs.StringVar(&c.ElasticSearchSink.Username, SinkElasticsearchUsername, c.ElasticSearchSink.Username,

@@ -95,7 +95,7 @@ Usage of ./tinysyslogd:
       --log-writer string                         The log writer. Valid writers are: 'console' and 'json'. (default "console")
       --mutator string                            Mutator type to use. Valid mutators are: text, json. (default "text")
       --sink-console-output string                Console to output too. Valid outputs are: stdout, stderr. (default "stdout")
-      --sink-elasticsearch-addresses strings      Elasticsearch server address. (default [http://127.0.0.1:9200])
+      --sink-elasticsearch-addresses strings      Elasticsearch server addresses.
       --sink-elasticsearch-api-key string         Elasticsearch api key.
       --sink-elasticsearch-cloud-id string        Elasticsearch cloud id.
       --sink-elasticsearch-index-name string      Elasticsearch index name. (default "tinysyslog")
