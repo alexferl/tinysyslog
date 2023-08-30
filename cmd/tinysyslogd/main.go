@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	cnf := config.NewConfig()
-	cnf.BindFlags()
+	c := config.NewConfig()
+	c.BindFlags()
 
 	server := tinysyslog.NewServer()
 	err := server.Run()
