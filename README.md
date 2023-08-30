@@ -1,5 +1,5 @@
 # tinysyslog
-[![Go Report Card](http://goreportcard.com/badge/alexferl/tinysyslog)](http://goreportcard.com/report/alexferl/tinysyslog)
+[![Go Report Card](https://goreportcard.com/badge/github.com/alexferl/tinysyslog)](https://goreportcard.com/report/github.com/alexferl/tinysyslog)
 
 A tiny and simple syslog server with log rotation. tinysyslog was born out of the need for a tiny, easy to set up and 
 use syslog server that simply writes every incoming log (RFC5424 format) to a file that is automatically rotated, 
