@@ -10,12 +10,11 @@ import (
 func TestFilesystem(t *testing.T) {
 	msg := "test"
 	path := "/tmp/syslog.log"
-	err := os.Remove(path)
-	assert.NoError(t, err)
+	_ = os.Remove(path)
 
 	fs := NewFilesystem(path, 30, 10, 100)
 
-	err = fs.Write([]byte(msg))
+	err := fs.Write([]byte(msg))
 	assert.NoError(t, err)
 
 	f, err := os.ReadFile(path)
