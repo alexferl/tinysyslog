@@ -1,4 +1,4 @@
-.PHONY: dev run test cover fmt pre-commit docker-build docker-run
+.PHONY: dev run test cover cover-html fmt pre-commit docker-build docker-run
 
 .DEFAULT: help
 help:
@@ -10,6 +10,8 @@ help:
 	@echo "	run go test"
 	@echo "make cover"
 	@echo "	run go test with -cover"
+	@echo "make cover-html"
+	@echo "	run go test with -cover and show HTML"
 	@echo "make tidy"
 	@echo "	run go mod tidy"
 	@echo "make fmt"
@@ -45,6 +47,10 @@ test:
 
 cover:
 	go test -cover -v ./...
+
+cover-html:
+	go test -v -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out
 
 tidy:
 	go mod tidy

@@ -30,7 +30,6 @@ func (s *Server) Run() error {
 	server.SetHandler(handler)
 
 	address := viper.GetString(config.BindAddr)
-
 	switch strings.ToLower(viper.GetString(config.SocketType)) {
 	case "tcp":
 		if err := server.ListenTCP(address); err != nil {
@@ -69,7 +68,7 @@ func (s *Server) Run() error {
 
 			mutated, err := mutator.Mutate(newLog)
 			if err != nil {
-				log.Err(err).Msg("error mutating log")
+				log.Err(err).Msg("failed mutating log")
 			} else {
 				log.Debug().Msgf("mutated log: %v", mutated)
 			}
@@ -78,7 +77,7 @@ func (s *Server) Run() error {
 			if viper.GetString(config.Filter) != "" {
 				filtered, err = filter.Filter(mutated)
 				if err != nil {
-					log.Err(err).Msg("error filtering log")
+					log.Err(err).Msg("failed filtering log")
 				} else {
 					log.Debug().Msgf("filtered log: %v", filtered)
 				}
@@ -99,7 +98,7 @@ func (s *Server) Run() error {
 func write(sink sinks.Sink, msg string) {
 	sinkName := sinks.GetSinkName(sink)
 	if err := sink.Write([]byte(msg + "\n")); err != nil {
-		log.Err(err).Str("sink", sinkName).Msgf("error writing log to sink: %s", sinkName)
+		log.Err(err).Str("sink", sinkName).Msgf("failed writing log to sink: %s", sinkName)
 	} else {
 		log.Debug().Msgf("wrote log to %s sink", sinkName)
 	}

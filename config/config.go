@@ -7,6 +7,8 @@ import (
 	libLog "github.com/alexferl/golib/log"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"tinysyslog/constants"
 )
 
 // Config holds all configuration for our program
@@ -66,7 +68,7 @@ func NewConfig() *Config {
 		Logging:  libLog.DefaultConfig,
 		BindAddr: "127.0.0.1:5140",
 		ConsoleSink: ConsoleSink{
-			Output: "stdout",
+			Output: constants.ConsoleStdOut,
 		},
 		ElasticSearchSink: ElasticSearchSink{
 			IndexName: "tinysyslog",
@@ -81,11 +83,11 @@ func NewConfig() *Config {
 		LogFile:     "stdout",
 		LogFormat:   "text",
 		LogLevel:    "info",
-		MutatorType: "text",
+		MutatorType: constants.MutatorText,
 		RegexFilter: RegexFilter{
 			Regex: "",
 		},
-		SinkTypes:  []string{"console"},
+		SinkTypes:  []string{constants.SinkConsole},
 		SocketType: "",
 	}
 }
@@ -122,13 +124,17 @@ const (
 func (c *Config) addFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.BindAddr, BindAddr, c.BindAddr, "IP and port to listen on.")
 	fs.StringVar(&c.FilterType, Filter, c.FilterType,
-		"Filter to filter logs with. Valid filters are: regex.")
+		fmt.Sprintf("Filter to filter logs with. Valid filters: %s", constants.Filters),
+	)
 	fs.StringVar(&c.RegexFilter.Regex, FilterRegex, c.RegexFilter.Regex, "Regex to filter with.")
-	fs.StringVar(&c.MutatorType, Mutator, c.MutatorType, "Mutator type to use. Valid mutators are: text, json.")
-	fs.StringSliceVar(&c.SinkTypes, Sinks, c.SinkTypes, "Sinks to save syslogs to. "+
-		"Valid sinks are: console, elasticsearch and filesystem.")
-	fs.StringVar(&c.ConsoleSink.Output, SinkConsoleOutput, c.ConsoleSink.Output, "Console to output too. "+
-		"Valid outputs are: stdout, stderr.")
+	fs.StringVar(&c.MutatorType, Mutator, c.MutatorType,
+		fmt.Sprintf("Mutator type to use. Valid mutators: %s", constants.Mutators),
+	)
+	fs.StringSliceVar(&c.SinkTypes, Sinks, c.SinkTypes,
+		fmt.Sprintf("Sinks to save syslogs to. Valid sinks: %s", constants.Sinks),
+	)
+	fs.StringVar(&c.ConsoleSink.Output, SinkConsoleOutput, c.ConsoleSink.Output,
+		fmt.Sprintf("Console to output to. Valid outputs: %s", constants.ConsoleOutputs))
 	fs.StringSliceVar(&c.ElasticSearchSink.Addresses, SinkElasticsearchAddresses, c.ElasticSearchSink.Addresses,
 		"Elasticsearch server addresses.")
 	fs.StringVar(&c.ElasticSearchSink.IndexName, SinkElasticsearchIndexName, c.ElasticSearchSink.IndexName,
@@ -144,7 +150,7 @@ func (c *Config) addFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.ElasticSearchSink.ServiceToken, SinkElasticsearchServiceToken, c.ElasticSearchSink.ServiceToken,
 		"Elasticsearch service token.")
 	fs.StringVar(&c.FilesystemSink.Filename, SinkFilesystemFilename, c.FilesystemSink.Filename,
-		"File to write incoming logs to.")
+		"File path to write incoming logs to.")
 	fs.IntVar(&c.FilesystemSink.MaxAge, SinkFilesystemMaxAge, c.FilesystemSink.MaxAge,
 		"Maximum age (in days) before a log is deleted.")
 	fs.IntVar(&c.FilesystemSink.MaxBackups, SinkFilesystemMaxBackups, c.FilesystemSink.MaxBackups,

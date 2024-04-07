@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 
 	"tinysyslog/config"
+	"tinysyslog/constants"
 	"tinysyslog/filters"
 	"tinysyslog/mutators"
 	"tinysyslog/sinks"
@@ -17,17 +18,17 @@ import (
 func MutatorFactory() mutators.Mutator {
 	mutatorType := viper.GetString(config.Mutator)
 
-	if mutatorType == "text" {
+	if mutatorType == constants.MutatorText {
 		log.Debug().Msgf("using mutator '%s'", mutatorType)
 		return mutators.NewText()
 	}
 
-	if mutatorType == "json" {
+	if mutatorType == constants.MutatorJSON {
 		log.Debug().Msgf("using mutator '%s'", mutatorType)
 		return mutators.NewJSON()
 	}
 
-	log.Warn().Msgf("unknown mutator '%s'. Falling back to 'text'", mutatorType)
+	log.Warn().Msgf("unknown mutator '%s'. Falling back to '%s'", mutatorType, constants.MutatorText)
 	return mutators.NewText()
 }
 
@@ -40,13 +41,13 @@ func FilterFactory() filters.Filter {
 		return filters.NewNoOp()
 	}
 
-	if filterType == "regex" {
+	if filterType == constants.FilterRegex {
 		filter := viper.GetString(config.FilterRegex)
 		log.Debug().Msgf("using filter '%s' with regular expression '%s'", filterType, filter)
 		return filters.NewRegex(filter)
 	}
 
-	log.Warn().Msgf("unknown filter '%s', falling back to no filtering")
+	log.Warn().Msgf("unknown filter '%s', falling back to no filtering", filterType)
 	return filters.NewNoOp()
 }
 
@@ -59,23 +60,23 @@ func SinksFactory() []sinks.Sink {
 
 	for _, sink := range sinkTypes {
 		switch sink {
-		case "console":
+		case constants.SinkConsole:
 			cOutput := viper.GetString(config.SinkConsoleOutput)
 			var stdOutput *os.File
 
-			if cOutput == "stdout" {
+			if cOutput == constants.ConsoleStdOut {
 				stdOutput = os.Stdout
-			} else if cOutput == "stderr" {
+			} else if cOutput == constants.ConsoleStdErr {
 				stdOutput = os.Stderr
 			} else {
-				log.Warn().Msgf("unknown console output '%s', falling back to 'stdout'", cOutput)
+				log.Warn().Msgf("unknown console output '%s', falling back to '%s'", cOutput, constants.ConsoleStdOut)
 			}
 			log.Debug().Msgf("adding sink '%s'", sink)
 			c := sinks.NewConsole(stdOutput)
 			sinksList = append(sinksList, c)
-		case "elasticsearch":
-			if mutatorType != "json" {
-				log.Panic().Msg("mutator must be 'json' when using 'elasticsearch' sink")
+		case constants.SinkElasticsearch:
+			if mutatorType != constants.MutatorJSON {
+				log.Panic().Msgf("mutator must be '%s' when using '%s' sink", constants.MutatorJSON, constants.SinkElasticsearch)
 			}
 
 			cfg := sinks.ElasticsearchConfig{
@@ -89,10 +90,10 @@ func SinksFactory() []sinks.Sink {
 				ServiceToken: viper.GetString(config.SinkElasticsearchServiceToken),
 			}
 
-			log.Debug().Msgf("adding sink type '%s'", sink)
+			log.Debug().Msgf("adding sink '%s'", sink)
 			es := sinks.NewElasticsearch(cfg)
 			sinksList = append(sinksList, es)
-		case "filesystem":
+		case constants.SinkFilesystem:
 			fsFilename := viper.GetString(config.SinkFilesystemFilename)
 			fsMaxAge := viper.GetInt(config.SinkFilesystemMaxAge)
 			fsMaxBackups := viper.GetInt(config.SinkFilesystemMaxBackups)

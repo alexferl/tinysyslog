@@ -60,7 +60,7 @@ func parseStructuredData(s string) map[string]string {
 		if at >= 0 {
 			kv := strings.Split(i, "@")
 			if len(kv) < 2 {
-				log.Error().Msgf("error parsing structured data item: %v", i)
+				log.Error().Msgf("failed parsing structured data item: %v", i)
 			} else {
 				m[kv[0]] = kv[1]
 			}
@@ -70,7 +70,7 @@ func parseStructuredData(s string) map[string]string {
 		if equal >= 0 {
 			kv := strings.Split(i, "=")
 			if len(kv) < 2 {
-				log.Error().Msgf("error parsing structured data item: %v", i)
+				log.Error().Msgf("failed parsing structured data item: %v", i)
 			} else {
 				m[kv[0]] = strings.Replace(kv[1], "\"", "", -1)
 			}

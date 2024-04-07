@@ -36,7 +36,7 @@ func NewElasticsearch(conf ElasticsearchConfig) Sink {
 		ServiceToken: conf.ServiceToken,
 	})
 	if err != nil {
-		log.Panic().Err(err).Msgf("error creating elasticsearch client")
+		log.Panic().Err(err).Msgf("failed creating elasticsearch client")
 	}
 
 	es := &Elasticsearch{
@@ -52,7 +52,7 @@ func NewElasticsearch(conf ElasticsearchConfig) Sink {
 
 	exists, err := client.Indices.ExistsIndexTemplate(idx).Do(cctx)
 	if err != nil {
-		log.Panic().Err(err).Msgf("error checking if index template exists")
+		log.Panic().Err(err).Msgf("failed checking if index template exists")
 	}
 
 	if !exists {
@@ -62,10 +62,10 @@ func NewElasticsearch(conf ElasticsearchConfig) Sink {
 
 		resp, err := client.Indices.PutTemplate(idx).IndexPatterns(pattern).Do(cctx)
 		if err != nil {
-			log.Panic().Err(err).Msgf("error creating index template '%s'", idx)
+			log.Panic().Err(err).Msgf("failed creating index template '%s'", idx)
 		}
 		if !resp.Acknowledged {
-			log.Panic().Err(err).Msgf("error acknowledging index template '%s'", idx)
+			log.Panic().Err(err).Msgf("failed acknowledging index template '%s'", idx)
 		}
 	}
 

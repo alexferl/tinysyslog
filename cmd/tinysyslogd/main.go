@@ -14,6 +14,6 @@ func main() {
 	server := tinysyslog.NewServer()
 	err := server.Run()
 	if err != nil {
-		log.Fatal().Err(err).Msg("error staring server")
+		log.Fatal().Err(err).Msg("failed staring server")
 	}
 }

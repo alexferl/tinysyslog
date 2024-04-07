@@ -1,4 +1,4 @@
-FROM golang:1.20.7-alpine3.18 as builder
+FROM golang:1.22.2-alpine3.19 as builder
 MAINTAINER Alexandre Ferland <me@alexferl.com>
 
 WORKDIR /build
