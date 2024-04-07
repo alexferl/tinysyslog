@@ -3,16 +3,15 @@ package config
 import (
 	"fmt"
 
-	"tinysyslog/filters"
-	"tinysyslog/mutators"
-	"tinysyslog/sinks"
-
 	libConfig "github.com/alexferl/golib/config"
 	libLog "github.com/alexferl/golib/log"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"tinysyslog/constants"
+	"tinysyslog/filters"
+	"tinysyslog/mutators"
+	"tinysyslog/sinks"
 )
 
 // Config holds all configuration for our program
