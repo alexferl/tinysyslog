@@ -3,17 +3,18 @@ package main
 import (
 	"github.com/rs/zerolog/log"
 
-	"tinysyslog"
 	"tinysyslog/config"
+	"tinysyslog/server"
 )
 
 func main() {
-	c := config.NewConfig()
+	c := config.New()
 	c.BindFlags()
 
-	server := tinysyslog.NewServer()
-	err := server.Run()
+	s, err := server.New()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed staring server")
 	}
+
+	s.Run()
 }

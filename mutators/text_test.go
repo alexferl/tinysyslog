@@ -32,4 +32,5 @@ func TestText(t *testing.T) {
 	res, err := m.Mutate(l)
 	assert.NoError(t, err)
 	assert.Equal(t, "Jan  1 12:01:21 hostname appname[1234]: message", res)
+	assert.Equal(t, TextKind, m.GetKind())
 }

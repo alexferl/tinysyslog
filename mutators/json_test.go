@@ -32,4 +32,5 @@ func TestJSON(t *testing.T) {
 	res, err := m.Mutate(l)
 	assert.NoError(t, err)
 	assert.Equal(t, `{"app_name":"appname","client":"127.0.0.1:64844","facility":20,"hostname":"hostname","message":"message","msg_id":"ID47","priority":165,"proc_id":"1234","severity":"NOTICE","structured_data":{"eventID":"123","eventSource":"test","exampleSDID":"32473","iut":"9"},"timestamp":"2016-01-01T12:01:21Z","tls_peer":"","version":1}`, res)
+	assert.Equal(t, JSONKind, m.GetKind())
 }

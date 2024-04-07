@@ -8,11 +8,13 @@ import (
 )
 
 // JSON represents a JSON mutator
-type JSON struct{}
+type JSON struct {
+	kind Kind
+}
 
 // NewJSON creates a JSON instance
 func NewJSON() Mutator {
-	return Mutator(&JSON{})
+	return Mutator(&JSON{kind: JSONKind})
 }
 
 // Mutate mutates a Log
@@ -37,4 +39,8 @@ func (j *JSON) Mutate(log Log) (string, error) {
 		return "", err
 	}
 	return string(formatted), nil
+}
+
+func (j *JSON) GetKind() Kind {
+	return j.kind
 }

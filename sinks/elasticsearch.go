@@ -13,6 +13,7 @@ import (
 type Elasticsearch struct {
 	client *elasticsearch.TypedClient
 	config ElasticsearchConfig
+	kind   Kind
 }
 
 type ElasticsearchConfig struct {
@@ -42,11 +43,11 @@ func NewElasticsearch(conf ElasticsearchConfig) Sink {
 	es := &Elasticsearch{
 		client: client,
 		config: conf,
+		kind:   ElasticsearchKind,
 	}
 	idx := es.config.IndexName
 
 	ctx := context.Background()
-
 	cctx, cancel := context.WithTimeout(ctx, es.config.Timeout)
 	defer cancel()
 
@@ -56,10 +57,7 @@ func NewElasticsearch(conf ElasticsearchConfig) Sink {
 	}
 
 	if !exists {
-		cctx, cancel = context.WithTimeout(ctx, es.config.Timeout)
-		defer cancel()
 		pattern := fmt.Sprintf("%s-*", idx)
-
 		resp, err := client.Indices.PutTemplate(idx).IndexPatterns(pattern).Do(cctx)
 		if err != nil {
 			log.Panic().Err(err).Msgf("failed creating index template '%s'", idx)
@@ -84,6 +82,10 @@ func (es *Elasticsearch) Write(output []byte) error {
 	log.Debug().Msgf("elasticsearch indexed log '%s' to index '%s'", resp.Id_, resp.Index_)
 
 	return nil
+}
+
+func (es *Elasticsearch) GetKind() Kind {
+	return es.kind
 }
 
 func (es *Elasticsearch) getCurrentDayIndex() string {

@@ -13,4 +13,5 @@ func TestNoOp(t *testing.T) {
 	s, err := f.Filter(msg)
 	assert.NoError(t, err)
 	assert.Equal(t, msg, s)
+	assert.Equal(t, NoOpKind, f.GetKind())
 }

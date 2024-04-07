@@ -3,6 +3,10 @@ package config
 import (
 	"fmt"
 
+	"tinysyslog/filters"
+	"tinysyslog/mutators"
+	"tinysyslog/sinks"
+
 	libConfig "github.com/alexferl/golib/config"
 	libLog "github.com/alexferl/golib/log"
 	"github.com/spf13/pflag"
@@ -58,8 +62,8 @@ type RegexFilter struct {
 	Regex string
 }
 
-// NewConfig creates a Config instance
-func NewConfig() *Config {
+// New creates a Config instance
+func New() *Config {
 	c := libConfig.New("TINYSYSLOG")
 	c.AppName = "tinysyslog"
 	c.EnvName = "PROD"
@@ -83,11 +87,11 @@ func NewConfig() *Config {
 		LogFile:     "stdout",
 		LogFormat:   "text",
 		LogLevel:    "info",
-		MutatorType: constants.MutatorText,
+		MutatorType: mutators.TextKind.String(),
 		RegexFilter: RegexFilter{
 			Regex: "",
 		},
-		SinkTypes:  []string{constants.SinkConsole},
+		SinkTypes:  []string{sinks.ConsoleKind.String()},
 		SocketType: "",
 	}
 }
@@ -124,14 +128,14 @@ const (
 func (c *Config) addFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.BindAddr, BindAddr, c.BindAddr, "IP and port to listen on.")
 	fs.StringVar(&c.FilterType, Filter, c.FilterType,
-		fmt.Sprintf("Filter to filter logs with. Valid filters: %s", constants.Filters),
+		fmt.Sprintf("Filter to filter logs with. Valid filters: %s", filters.Kinds),
 	)
 	fs.StringVar(&c.RegexFilter.Regex, FilterRegex, c.RegexFilter.Regex, "Regex to filter with.")
 	fs.StringVar(&c.MutatorType, Mutator, c.MutatorType,
-		fmt.Sprintf("Mutator type to use. Valid mutators: %s", constants.Mutators),
+		fmt.Sprintf("Mutator type to use. Valid mutators: %s", mutators.Kinds),
 	)
 	fs.StringSliceVar(&c.SinkTypes, Sinks, c.SinkTypes,
-		fmt.Sprintf("Sinks to save syslogs to. Valid sinks: %s", constants.Sinks),
+		fmt.Sprintf("Sinks to save syslogs to. Valid sinks: %s", sinks.Kinds),
 	)
 	fs.StringVar(&c.ConsoleSink.Output, SinkConsoleOutput, c.ConsoleSink.Output,
 		fmt.Sprintf("Console to output to. Valid outputs: %s", constants.ConsoleOutputs))

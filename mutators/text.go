@@ -5,11 +5,13 @@ import (
 )
 
 // Text represents a text mutator
-type Text struct{}
+type Text struct {
+	kind Kind
+}
 
 // NewText creates Text instance
 func NewText() Mutator {
-	return Mutator(&Text{})
+	return Mutator(&Text{kind: TextKind})
 }
 
 // Mutate mutates a Log
@@ -21,4 +23,8 @@ func (t *Text) Mutate(log Log) (string, error) {
 		log.ProcId,
 		log.Message)
 	return formatted, nil
+}
+
+func (t *Text) GetKind() Kind {
+	return t.kind
 }

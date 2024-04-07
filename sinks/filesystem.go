@@ -7,6 +7,7 @@ import (
 // Filesystem represents a filesystem sink
 type Filesystem struct {
 	logger *lumberjack.Logger
+	kind   Kind
 }
 
 // NewFilesystem creates a Filesystem instance
@@ -20,6 +21,7 @@ func NewFilesystem(filename string, maxAge, maxBackups, maxSize int) Sink {
 
 	return Sink(&Filesystem{
 		logger: logger,
+		kind:   FilesystemKind,
 	})
 }
 
@@ -31,4 +33,8 @@ func (fs *Filesystem) Write(output []byte) error {
 	}
 
 	return nil
+}
+
+func (fs *Filesystem) GetKind() Kind {
+	return fs.kind
 }

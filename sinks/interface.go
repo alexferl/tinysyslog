@@ -1,16 +1,21 @@
 package sinks
 
-import (
-	"strings"
+type Kind int8
 
-	"tinysyslog/util"
+const (
+	ConsoleKind Kind = iota + 1
+	ElasticsearchKind
+	FilesystemKind
 )
+
+func (k Kind) String() string {
+	return [...]string{"console", "elasticsearch", "filesystem"}[k-1]
+}
+
+var Kinds = []string{ConsoleKind.String(), ElasticsearchKind.String(), FilesystemKind.String()}
 
 // Sink a common interface for all sinks
 type Sink interface {
 	Write([]byte) error
-}
-
-func GetSinkName(sink Sink) string {
-	return strings.ToLower(util.GetType(sink))
+	GetKind() Kind
 }

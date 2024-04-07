@@ -25,6 +25,7 @@ func TestRegex(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			f := NewRegex(tc.re)
 			s, err := f.Filter(msg)
+			assert.Equal(t, RegexKind, f.GetKind())
 			if tc.err {
 				assert.Error(t, err)
 			} else {

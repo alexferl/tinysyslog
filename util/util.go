@@ -1,7 +1,5 @@
 package util
 
-import "reflect"
-
 var severities = map[int]string{
 	0: "EMERGENCY",
 	1: "ALERT",
@@ -34,13 +32,5 @@ func SeverityNumToString(severity int) string {
 		return severities[7]
 	default:
 		return "DEFAULT"
-	}
-}
-
-func GetType(v interface{}) string {
-	if t := reflect.TypeOf(v); t.Kind() == reflect.Ptr {
-		return t.Elem().Name()
-	} else {
-		return t.Name()
 	}
 }
