@@ -1,4 +1,4 @@
-FROM golang:1.24.2-alpine as builder
+FROM golang:1.24.2-alpine AS builder
 LABEL maintainer="Alexandre Ferland <me@alexferl.com>"
 
 WORKDIR /build
