@@ -22,7 +22,7 @@ func (r *Regex) Filter(data string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		if m != true {
+		if !m {
 			return data, nil
 		}
 		return "", nil

@@ -67,7 +67,7 @@ func parseStructuredData(s string) map[string]string {
 			if len(kv) < 2 {
 				log.Error().Msgf("failed parsing structured data item: %v", i)
 			} else {
-				m[kv[0]] = strings.Replace(kv[1], "\"", "", -1)
+				m[kv[0]] = strings.ReplaceAll(kv[1], "\"", "")
 			}
 		}
 	}

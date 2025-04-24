@@ -1,7 +1,7 @@
 package testing
 
 import (
-	"tinysyslog/config"
+	"github.com/alexferl/tinysyslog/config"
 )
 
 func init() {

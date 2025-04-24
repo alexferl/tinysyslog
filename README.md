@@ -1,8 +1,8 @@
 # tinysyslog [![Go Report Card](https://goreportcard.com/badge/github.com/alexferl/tinysyslog)](https://goreportcard.com/report/github.com/alexferl/tinysyslog) [![codecov](https://codecov.io/gh/alexferl/tinysyslog/branch/master/graph/badge.svg)](https://codecov.io/gh/alexferl/tinysyslog)
 
-A tiny and simple syslog server with log rotation. tinysyslog was born out of the need for a tiny, easy to set up and 
-use syslog server that simply writes every incoming log (in [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) format **only**) to a file that is automatically rotated, 
-to stdout or stderr (mostly for Docker) and or to Elasticsearch.
+A tiny and simple syslog server with log rotation. tinysyslog was born out of the need for a tiny, easy to set up and
+use syslog server that simply writes every incoming log (in [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) format **only**) to a file that is automatically rotated,
+to stdout or stderr (mostly for Docker).
 tinysyslog is based on [go-syslog](https://github.com/mcuadros/go-syslog) and [lumberjack](https://github.com/natefinch/lumberjack).
 
 ## Quickstart
@@ -32,7 +32,7 @@ Download the image:
 ```shell
 docker pull admiralobvious/tinysyslog
 ```
-    
+
 Start the container:
 ```shell
 docker run --rm --name tinysyslog -p 5140:5140/udp -d admiralobvious/tinysyslog
@@ -85,27 +85,20 @@ You can now send logs from your app(s) to `tinysyslog:5140`.
 ## Configuration
 ```
 Usage of ./tinysyslogd:
-      --app-name string                           The name of the application. (default "tinysyslog")
-      --bind-addr string                          IP and port to listen on. (default "127.0.0.1:5140")
-      --env-name string                           The environment of the application. Used to load the right configs file. (default "PROD")
-      --filter string                             Filter to filter logs with. Valid filters: [regex]
-      --filter-regex string                       Regex to filter with.
-      --log-level string                          The granularity of log outputs. Valid levels: [PANIC FATAL ERROR WARN INFO DISABLED TRACE DISABLED] (default "INFO")
-      --log-output string                         The output to write to. Valid outputs: [stdout stderr] (default "stdout")
-      --log-writer string                         The log writer. Valid writers: [console json] (default "console")
-      --mutator string                            Mutator type to use. Valid mutators: [text json] (default "text")
-      --sink-console-output string                Console to output to. Valid outputs: [stdout stderr] (default "stdout")
-      --sink-elasticsearch-addresses strings      Elasticsearch server addresses.
-      --sink-elasticsearch-api-key string         Elasticsearch api key.
-      --sink-elasticsearch-cloud-id string        Elasticsearch cloud id.
-      --sink-elasticsearch-index-name string      Elasticsearch index name. (default "tinysyslog")
-      --sink-elasticsearch-password string        Elasticsearch password.
-      --sink-elasticsearch-service-token string   Elasticsearch service token.
-      --sink-elasticsearch-username string        Elasticsearch username.
-      --sink-filesystem-filename string           File path to write incoming logs to. (default "syslog.log")
-      --sink-filesystem-max-age int               Maximum age (in days) before a log is deleted. (default 30)
-      --sink-filesystem-max-backups int           Maximum backups to keep. (default 10)
-      --sink-filesystem-max-size int              Maximum log size (in megabytes) before it's rotated. (default 100)
-      --sinks strings                             Sinks to save syslogs to. Valid sinks: [console elasticsearch filesystem] (default [console])
-      --socket-type string                        Type of socket to use, TCP or UDP. If no type is specified, both are used.
+      --app-name string                   The name of the application. (default "tinysyslog")
+      --bind-addr string                  IP and port to listen on. (default "127.0.0.1:5140")
+      --env-name string                   The environment of the application. Used to load the right configs file. (default "PROD")
+      --filter string                     Filter to filter logs with. Valid filters: [noop regex]
+      --filter-regex string               Regex to filter with.
+      --log-level string                  The granularity of log outputs. Valid levels: [PANIC FATAL ERROR WARN INFO DISABLED TRACE DISABLED] (default "INFO")
+      --log-output string                 The output to write to. Valid outputs: [stdout stderr] (default "stdout")
+      --log-writer string                 The log writer. Valid writers: [console json] (default "console")
+      --mutator string                    Mutator type to use. Valid mutators: [text json] (default "text")
+      --sink-console-output string        Console to output to. Valid outputs: [stdout stderr] (default "stdout")
+      --sink-filesystem-filename string   File path to write incoming logs to. (default "syslog.log")
+      --sink-filesystem-max-age int       Maximum age (in days) before a log is deleted. (default 30)
+      --sink-filesystem-max-backups int   Maximum backups to keep. (default 10)
+      --sink-filesystem-max-size int      Maximum log size (in megabytes) before it's rotated. (default 100)
+      --sinks strings                     Sinks to save syslogs to. Valid sinks: [console filesystem] (default [console])
+      --socket-type string                Type of socket to use, TCP or UDP. If no type is specified, both are used.
 ```

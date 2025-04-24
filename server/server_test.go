@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	_ "tinysyslog/testing"
+	_ "github.com/alexferl/tinysyslog/testing"
 )
 
 func TestNew(t *testing.T) {

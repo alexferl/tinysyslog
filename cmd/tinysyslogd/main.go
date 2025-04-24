@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/rs/zerolog/log"
 
-	"tinysyslog/config"
-	"tinysyslog/server"
+	"github.com/alexferl/tinysyslog/config"
+	"github.com/alexferl/tinysyslog/server"
 )
 
 func main() {

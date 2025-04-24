@@ -22,11 +22,15 @@ func NewConsole(output *os.File) Sink {
 // Write writes to the specified output
 func (c *Console) Write(stdOutput []byte) error {
 	w := bufio.NewWriter(c.output)
-	defer w.Flush()
 	_, err := w.Write(stdOutput)
 	if err != nil {
 		return err
 	}
+
+	if err := w.Flush(); err != nil {
+		return err
+	}
+
 	return nil
 }
 

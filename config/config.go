@@ -8,43 +8,32 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"tinysyslog/constants"
-	"tinysyslog/filters"
-	"tinysyslog/mutators"
-	"tinysyslog/sinks"
+	"github.com/alexferl/tinysyslog/constants"
+	"github.com/alexferl/tinysyslog/filters"
+	"github.com/alexferl/tinysyslog/mutators"
+	"github.com/alexferl/tinysyslog/sinks"
 )
 
 // Config holds all configuration for our program
 type Config struct {
-	Config            *libConfig.Config
-	Logging           *libLog.Config
-	BindAddr          string
-	ConsoleSink       ConsoleSink
-	ElasticSearchSink ElasticSearchSink
-	FilesystemSink    FilesystemSink
-	FilterType        string
-	LogFile           string
-	LogFormat         string
-	LogLevel          string
-	MutatorType       string
-	RegexFilter       RegexFilter
-	SinkTypes         []string
-	SocketType        string
+	Config         *libConfig.Config
+	Logging        *libLog.Config
+	BindAddr       string
+	ConsoleSink    ConsoleSink
+	FilesystemSink FilesystemSink
+	FilterType     string
+	LogFile        string
+	LogFormat      string
+	LogLevel       string
+	MutatorType    string
+	RegexFilter    RegexFilter
+	SinkTypes      []string
+	SocketType     string
 }
 
 // ConsoleSink holds all configuration for the ConsoleSink sink
 type ConsoleSink struct {
 	Output string
-}
-
-type ElasticSearchSink struct {
-	Addresses    []string
-	IndexName    string
-	Username     string
-	Password     string
-	CloudID      string
-	APIKey       string
-	ServiceToken string
 }
 
 // FilesystemSink holds all configuration for the FilesystemSink sink
@@ -72,9 +61,6 @@ func New() *Config {
 		BindAddr: "127.0.0.1:5140",
 		ConsoleSink: ConsoleSink{
 			Output: constants.ConsoleStdOut,
-		},
-		ElasticSearchSink: ElasticSearchSink{
-			IndexName: "tinysyslog",
 		},
 		FilesystemSink: FilesystemSink{
 			Filename:   "syslog.log",
@@ -107,14 +93,6 @@ const (
 
 	SinkConsoleOutput = "sink-console-output"
 
-	SinkElasticsearchAddresses    = "sink-elasticsearch-addresses"
-	SinkElasticsearchIndexName    = "sink-elasticsearch-index-name"
-	SinkElasticsearchUsername     = "sink-elasticsearch-username"
-	SinkElasticsearchPassword     = "sink-elasticsearch-password"
-	SinkElasticsearchCloudID      = "sink-elasticsearch-cloud-id"
-	SinkElasticsearchAPIKey       = "sink-elasticsearch-api-key"
-	SinkElasticsearchServiceToken = "sink-elasticsearch-service-token"
-
 	SinkFilesystemFilename   = "sink-filesystem-filename"
 	SinkFilesystemMaxAge     = "sink-filesystem-max-age"
 	SinkFilesystemMaxBackups = "sink-filesystem-max-backups"
@@ -138,20 +116,6 @@ func (c *Config) addFlags(fs *pflag.FlagSet) {
 	)
 	fs.StringVar(&c.ConsoleSink.Output, SinkConsoleOutput, c.ConsoleSink.Output,
 		fmt.Sprintf("Console to output to. Valid outputs: %s", constants.ConsoleOutputs))
-	fs.StringSliceVar(&c.ElasticSearchSink.Addresses, SinkElasticsearchAddresses, c.ElasticSearchSink.Addresses,
-		"Elasticsearch server addresses.")
-	fs.StringVar(&c.ElasticSearchSink.IndexName, SinkElasticsearchIndexName, c.ElasticSearchSink.IndexName,
-		"Elasticsearch index name.")
-	fs.StringVar(&c.ElasticSearchSink.Username, SinkElasticsearchUsername, c.ElasticSearchSink.Username,
-		"Elasticsearch username.")
-	fs.StringVar(&c.ElasticSearchSink.Password, SinkElasticsearchPassword, c.ElasticSearchSink.Password,
-		"Elasticsearch password.")
-	fs.StringVar(&c.ElasticSearchSink.CloudID, SinkElasticsearchCloudID, c.ElasticSearchSink.CloudID,
-		"Elasticsearch cloud id.")
-	fs.StringVar(&c.ElasticSearchSink.APIKey, SinkElasticsearchAPIKey, c.ElasticSearchSink.APIKey,
-		"Elasticsearch api key.")
-	fs.StringVar(&c.ElasticSearchSink.ServiceToken, SinkElasticsearchServiceToken, c.ElasticSearchSink.ServiceToken,
-		"Elasticsearch service token.")
 	fs.StringVar(&c.FilesystemSink.Filename, SinkFilesystemFilename, c.FilesystemSink.Filename,
 		"File path to write incoming logs to.")
 	fs.IntVar(&c.FilesystemSink.MaxAge, SinkFilesystemMaxAge, c.FilesystemSink.MaxAge,
