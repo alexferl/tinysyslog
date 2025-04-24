@@ -1,7 +1,9 @@
 *.log
+.dockerignore
 .git
 .gitignore
 .idea
 LICENSE
-README*
+README.md
+Makefile
 tinysyslog-bin

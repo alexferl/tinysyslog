@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"tinysyslog/filters"
-	"tinysyslog/mutators"
-	"tinysyslog/sinks"
+	"github.com/alexferl/tinysyslog/filters"
+	"github.com/alexferl/tinysyslog/mutators"
+	"github.com/alexferl/tinysyslog/sinks"
 )
 
 func TestMutator(t *testing.T) {

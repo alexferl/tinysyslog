@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/mcuadros/go-syslog.v2"
 
-	"tinysyslog/config"
-	"tinysyslog/factories"
-	"tinysyslog/mutators"
-	"tinysyslog/sinks"
+	"github.com/alexferl/tinysyslog/config"
+	"github.com/alexferl/tinysyslog/factories"
+	"github.com/alexferl/tinysyslog/mutators"
+	"github.com/alexferl/tinysyslog/sinks"
 )
 
 // Server holds the config

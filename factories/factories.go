@@ -2,16 +2,15 @@ package factories
 
 import (
 	"os"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 
-	"tinysyslog/config"
-	"tinysyslog/constants"
-	"tinysyslog/filters"
-	"tinysyslog/mutators"
-	"tinysyslog/sinks"
+	"github.com/alexferl/tinysyslog/config"
+	"github.com/alexferl/tinysyslog/constants"
+	"github.com/alexferl/tinysyslog/filters"
+	"github.com/alexferl/tinysyslog/mutators"
+	"github.com/alexferl/tinysyslog/sinks"
 )
 
 // Mutator creates a new object with mutators.Mutator interface
@@ -54,7 +53,6 @@ func Filter() filters.Filter {
 // Sinks creates a new slice of objects with sinks.Sink interface
 func Sinks() []sinks.Sink {
 	sinksSlice := viper.GetStringSlice(config.Sinks)
-	mutatorType := viper.GetString(config.Mutator)
 
 	var sinksList []sinks.Sink
 
@@ -64,35 +62,19 @@ func Sinks() []sinks.Sink {
 			cOutput := viper.GetString(config.SinkConsoleOutput)
 			var stdOutput *os.File
 
-			if cOutput == constants.ConsoleStdOut {
+			switch cOutput {
+			case constants.ConsoleStdOut:
 				stdOutput = os.Stdout
-			} else if cOutput == constants.ConsoleStdErr {
+			case constants.ConsoleStdErr:
 				stdOutput = os.Stderr
-			} else {
+			default:
 				log.Warn().Msgf("unknown console output '%s', falling back to '%s'", cOutput, constants.ConsoleStdOut)
 			}
+
 			log.Debug().Msgf("adding sink '%s'", s)
+
 			c := sinks.NewConsole(stdOutput)
 			sinksList = append(sinksList, c)
-		case sinks.ElasticsearchKind.String():
-			if mutatorType != mutators.JSONKind.String() {
-				log.Panic().Msgf("mutator must be '%s' when using '%s' sink", mutators.JSONKind, sinks.ElasticsearchKind)
-			}
-
-			cfg := sinks.ElasticsearchConfig{
-				IndexName:    viper.GetString(config.SinkElasticsearchIndexName),
-				Timeout:      time.Second * 10,
-				Addresses:    viper.GetStringSlice(config.SinkElasticsearchAddresses),
-				Username:     viper.GetString(config.SinkElasticsearchUsername),
-				Password:     viper.GetString(config.SinkElasticsearchPassword),
-				CloudID:      viper.GetString(config.SinkElasticsearchCloudID),
-				APIKey:       viper.GetString(config.SinkElasticsearchAPIKey),
-				ServiceToken: viper.GetString(config.SinkElasticsearchServiceToken),
-			}
-
-			log.Debug().Msgf("adding sink '%s'", s)
-			es := sinks.NewElasticsearch(cfg)
-			sinksList = append(sinksList, es)
 		case sinks.FilesystemKind.String():
 			fsFilename := viper.GetString(config.SinkFilesystemFilename)
 			fsMaxAge := viper.GetInt(config.SinkFilesystemMaxAge)
