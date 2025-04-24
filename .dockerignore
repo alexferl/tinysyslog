@@ -1,8 +1,14 @@
 *.log
 .dockerignore
+.editorconfig
 .git
+.github
 .gitignore
+.golangci.yml
+.pre-commit-config.yaml
 .idea
+coverage.out
+kubernetes
 LICENSE
 README.md
 Makefile
