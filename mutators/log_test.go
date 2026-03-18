@@ -21,7 +21,7 @@ func TestNewLog(t *testing.T) {
 		"priority":        165,
 		"proc_id":         "1234",
 		"severity":        5,
-		"structured_data": `{"eventID":"123","eventSource":"test","exampleSDID":"32473","iut":"9"}`,
+		"structured_data": `[exampleSDID@32473 eventID="123" eventSource="test" iut="9"]`,
 		"timestamp":       p,
 		"tls_peer":        "",
 		"version":         1,
@@ -37,8 +37,49 @@ func TestNewLog(t *testing.T) {
 	assert.Equal(t, logParts["priority"], l.Priority)
 	assert.Equal(t, logParts["proc_id"], l.ProcId)
 	assert.Equal(t, logParts["severity"], l.Severity)
-	// assert.Equal(t, logParts["structured_data"], l.StructuredData)
+	assert.Equal(t, map[string]string{"sd_id": "exampleSDID@32473", "eventID": "123", "eventSource": "test", "iut": "9"}, l.StructuredData)
 	assert.Equal(t, logParts["timestamp"], l.Timestamp)
 	assert.Equal(t, logParts["tls_peer"], l.TLSPeer)
 	assert.Equal(t, logParts["version"], l.Version)
+}
+
+func TestParseStructuredData(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected map[string]string
+	}{
+		{
+			name:     "RFC5424 with enterprise ID",
+			input:    `[req@32473 eventID="123" eventSource="test"]`,
+			expected: map[string]string{"sd_id": "req@32473", "eventID": "123", "eventSource": "test"},
+		},
+		{
+			name:     "RFC5424 without enterprise ID",
+			input:    `[exampleSDID iut="9" eventSource="test"]`,
+			expected: map[string]string{"sd_id": "exampleSDID", "iut": "9", "eventSource": "test"},
+		},
+		{
+			name:     "SD-ID only, no params",
+			input:    `[req@32473]`,
+			expected: map[string]string{},
+		},
+		{
+			name:     "empty brackets",
+			input:    `[]`,
+			expected: map[string]string{},
+		},
+		{
+			name:     "JSON input (returns empty)",
+			input:    `{"eventID":"123"}`,
+			expected: map[string]string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parseStructuredData(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

@@ -2,9 +2,12 @@ package config
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"strings"
 
-	libConfig "github.com/alexferl/golib/config"
-	libLog "github.com/alexferl/golib/log"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
@@ -14,10 +17,17 @@ import (
 	"github.com/alexferl/tinysyslog/sinks"
 )
 
+const (
+	// LogLevel is the flag name for log level
+	LogLevel = "log-level"
+	// LogOutput is the flag name for log output
+	LogOutput = "log-output"
+	// LogWriter is the flag name for log writer
+	LogWriter = "log-writer"
+)
+
 // Config holds all configuration for our program
 type Config struct {
-	Config         *libConfig.Config
-	Logging        *libLog.Config
 	BindAddr       string
 	ConsoleSink    ConsoleSink
 	FilesystemSink FilesystemSink
@@ -25,6 +35,7 @@ type Config struct {
 	LogFile        string
 	LogFormat      string
 	LogLevel       string
+	LogOutput      string
 	MutatorType    string
 	RegexFilter    RegexFilter
 	SinkTypes      []string
@@ -52,12 +63,7 @@ type RegexFilter struct {
 
 // New creates a Config instance
 func New() *Config {
-	c := libConfig.New("TINYSYSLOG")
-	c.AppName = "tinysyslog"
-	c.EnvName = "PROD"
 	return &Config{
-		Config:   c,
-		Logging:  libLog.DefaultConfig,
 		BindAddr: "127.0.0.1:5140",
 		ConsoleSink: ConsoleSink{
 			Output: constants.ConsoleStdOut,
@@ -69,9 +75,10 @@ func New() *Config {
 			MaxSize:    100,
 		},
 		FilterType:  "",
-		LogFile:     "stdout",
+		LogFile:     "",
 		LogFormat:   "text",
 		LogLevel:    "info",
+		LogOutput:   "stdout",
 		MutatorType: mutators.TextKind.String(),
 		RegexFilter: RegexFilter{
 			Regex: "",
@@ -101,7 +108,7 @@ const (
 	SocketType = "socket-type"
 )
 
-// AddFlags adds all the flags from the command line and the config file
+// addFlags adds all the flags from the command line and the config file
 func (c *Config) addFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.BindAddr, BindAddr, c.BindAddr, "IP and port to listen on.")
 	fs.StringVar(&c.FilterType, Filter, c.FilterType,
@@ -126,6 +133,11 @@ func (c *Config) addFlags(fs *pflag.FlagSet) {
 		"Maximum log size (in megabytes) before it's rotated.")
 	fs.StringVar(&c.SocketType, SocketType, c.SocketType, "Type of socket to use, TCP or UDP."+
 		" If no type is specified, both are used.")
+
+	fs.StringVar(&c.LogLevel, LogLevel, c.LogLevel, "Log level (debug, info, warn, error, fatal, panic).")
+	fs.StringVar(&c.LogOutput, LogOutput, c.LogOutput, "Log output (stdout, stderr, file).")
+	fs.StringVar(&c.LogFormat, LogWriter, c.LogFormat, "Log writer format (text, json).")
+	fs.StringVar(&c.LogFile, "log-file", c.LogFile, "Log file path (when log-output is file).")
 }
 
 // BindFlags normalizes and parses the command line flags
@@ -134,20 +146,58 @@ func (c *Config) BindFlags() {
 		return
 	}
 
-	c.addFlags(pflag.CommandLine)
-	c.Logging.BindFlags(pflag.CommandLine)
+	viper.SetEnvPrefix("TINYSYSLOG")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.AutomaticEnv()
 
-	err := c.Config.BindFlags()
-	if err != nil {
+	c.addFlags(pflag.CommandLine)
+	pflag.Parse()
+
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		panic(fmt.Errorf("failed binding flags: %v", err))
 	}
 
-	err = libLog.New(&libLog.Config{
-		LogLevel:  viper.GetString(libLog.LogLevel),
-		LogOutput: viper.GetString(libLog.LogOutput),
-		LogWriter: viper.GetString(libLog.LogWriter),
-	})
+	c.setupLogger()
+}
+
+// setupLogger configures zerolog based on config
+func (c *Config) setupLogger() {
+	level, err := zerolog.ParseLevel(viper.GetString(LogLevel))
 	if err != nil {
-		panic(fmt.Errorf("failed creating logger: %v", err))
+		level = zerolog.InfoLevel
 	}
+	zerolog.SetGlobalLevel(level)
+
+	logOutput := viper.GetString(LogOutput)
+	logFile := viper.GetString("log-file")
+
+	var output io.Writer
+	switch logOutput {
+	case "stderr":
+		output = os.Stderr
+	case "file":
+		if logFile != "" && logFile != "stdout" && logFile != "stderr" {
+			file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+			if err != nil {
+				output = os.Stdout
+			} else {
+				output = file
+			}
+		} else {
+			output = os.Stdout
+		}
+	default:
+		output = os.Stdout
+	}
+
+	logFormat := viper.GetString(LogWriter)
+	if logFormat == "text" || logFormat == "" {
+		output = zerolog.ConsoleWriter{
+			Out:        output,
+			TimeFormat: "2006-01-02T15:04:05Z07:00",
+		}
+	}
+
+	logger := zerolog.New(output).With().Timestamp().Logger()
+	log.Logger = logger
 }

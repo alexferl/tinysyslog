@@ -3,7 +3,7 @@
 A tiny and simple syslog server with log rotation. tinysyslog was born out of the need for a tiny, easy to set up and
 use syslog server that simply writes every incoming log (in [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) format **only**) to a file that is automatically rotated,
 to stdout or stderr (mostly for Docker).
-tinysyslog is based on [go-syslog](https://github.com/mcuadros/go-syslog) and [lumberjack](https://github.com/natefinch/lumberjack).
+tinysyslog is based on [go-syslog](https://github.com/leodido/go-syslog) and [lumberjack](https://github.com/natefinch/lumberjack).
 
 ## Quickstart
 ```shell
@@ -35,7 +35,7 @@ docker pull admiralobvious/tinysyslog
 
 Start the container:
 ```shell
-docker run --rm --name tinysyslog -p 5140:5140/udp -d admiralobvious/tinysyslog
+docker run --rm --name tinysyslog -p 5140:5140/tcp -p 5140:5140/udp -d admiralobvious/tinysyslog --bind-addr 0.0.0.0:5140
 ```
 
 Send a log:
