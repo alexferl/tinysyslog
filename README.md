@@ -1,4 +1,4 @@
-# tinysyslog [![Go Report Card](https://goreportcard.com/badge/github.com/alexferl/tinysyslog)](https://goreportcard.com/report/github.com/alexferl/tinysyslog) [![codecov](https://codecov.io/gh/alexferl/tinysyslog/branch/master/graph/badge.svg)](https://codecov.io/gh/alexferl/tinysyslog)
+# tinysyslog [![Go Report Card](https://goreportcard.com/badge/github.com/alexferl/tinysyslog)](https://goreportcard.com/report/github.com/alexferl/tinysyslog) [![Coverage Status](https://coveralls.io/repos/github/alexferl/tinysyslog/badge.svg?branch=master)](https://coveralls.io/github/alexferl/tinysyslog?branch=master)
 
 A tiny and simple syslog server with log rotation. tinysyslog was born out of the need for a tiny, easy to set up and
 use syslog server that simply writes every incoming log (in [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) format **only**) to a file that is automatically rotated,
