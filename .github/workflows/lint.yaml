@@ -20,14 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Install Go
-        uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@v6
         with:
-          go-version: '1.23.x'
+          go-version: '1.26.x'
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
+      - name: Setup golangci-lint
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.0.2
+          version: v2.11.3

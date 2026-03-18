@@ -11,25 +11,28 @@ jobs:
   unit:
     strategy:
       matrix:
-        go-version: [ '1.23.x', '1.24.x' ]
-        os: [  macos-latest, ubuntu-latest]
+        go-version: [ '1.26.x' ]
+        os: [ macos-latest, ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Fetch Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Install Go
-        uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go-version }}
 
-      - name: Test
+      - name: Run Tests
         run: go run gotest.tools/gotestsum@latest -f testname -- ./... -race -count=1 -coverprofile=coverage.txt -covermode=atomic -shuffle=on
 
-      - name: Upload coverage reports to Codecov
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23.x' }}
-        uses: codecov/codecov-action@v5.4.0
+      - name: Remove examples from coverage
+        run: grep -v '/examples/' coverage.txt > coverage.filtered.txt && mv coverage.filtered.txt coverage.txt
+
+      - name: Upload to Coveralls
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.go-version == '1.26.x' }}
+        uses: coverallsapp/github-action@v2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.txt
-          flags: unittests
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: coverage.txt
+          format: golang
