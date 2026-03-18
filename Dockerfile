@@ -1,24 +1,33 @@
-FROM golang:1.24.2-alpine AS builder
+FROM golang:1.26-alpine AS builder
 LABEL maintainer="Alexandre Ferland <me@alexferl.com>"
 
 WORKDIR /build
 
 RUN apk add --no-cache git
-RUN adduser -D -u 1337 tinysyslog
+
+RUN addgroup -g 65532 -S nonroot && \
+    adduser  -u 65532 -S -D -G nonroot -s /sbin/nologin nonroot
 
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ./cmd/tinysyslogd
+ARG GOOS=linux
+ARG GOARCH=amd64
+
+ENV GOOS=$GOOS
+ENV GOARCH=$GOARCH
+
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/app ./cmd/tinysyslogd
 
 FROM scratch
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /build/tinysyslogd /tinysyslogd
 
-USER tinysyslog
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /build/app /app
+
+USER nonroot
 
 EXPOSE 5140/tcp 5140/udp
 
-ENTRYPOINT ["/tinysyslogd", "--bind-addr", "0.0.0.0:5140"]
+ENTRYPOINT ["/app", "--bind-addr", "0.0.0.0:5140"]

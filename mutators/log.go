@@ -3,8 +3,6 @@ package mutators
 import (
 	"strings"
 	"time"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Log struct {
@@ -25,7 +23,12 @@ type Log struct {
 
 // NewLog creates a Log instance
 func NewLog(logParts map[string]interface{}) Log {
-	sd := parseStructuredData(logParts["structured_data"].(string))
+	sdString := "-"
+	if sd, ok := logParts["structured_data"]; ok && sd != nil {
+		sdString = sd.(string)
+	}
+
+	sd := parseStructuredData(sdString)
 	return Log{
 		AppName:        logParts["app_name"].(string),
 		Client:         logParts["client"].(string),
@@ -46,29 +49,29 @@ func NewLog(logParts map[string]interface{}) Log {
 func parseStructuredData(s string) map[string]string {
 	m := make(map[string]string)
 
-	replacer := strings.NewReplacer("[", "", "]", "")
-	s = replacer.Replace(s)
-	items := strings.Split(s, " ")
+	s = strings.TrimPrefix(s, "[")
+	s = strings.TrimSuffix(s, "]")
 
+	// Find first space to separate SD-ID from params
+	// SD-ID can contain @ for enterprise ID (e.g., "req@32473")
+	firstSpace := strings.Index(s, " ")
+	if firstSpace < 0 {
+		// No params, just SD-ID
+		return m
+	}
+
+	sdID := s[:firstSpace] // "req@32473"
+	paramsStr := s[firstSpace+1:]
+
+	m["sd_id"] = sdID
+
+	items := strings.Split(paramsStr, " ")
 	for _, i := range items {
-		at := strings.Index(i, "@")
-		if at >= 0 {
-			kv := strings.Split(i, "@")
-			if len(kv) < 2 {
-				log.Error().Msgf("failed parsing structured data item: %v", i)
-			} else {
-				m[kv[0]] = kv[1]
-			}
-		}
-
 		equal := strings.Index(i, "=")
 		if equal >= 0 {
-			kv := strings.Split(i, "=")
-			if len(kv) < 2 {
-				log.Error().Msgf("failed parsing structured data item: %v", i)
-			} else {
-				m[kv[0]] = strings.ReplaceAll(kv[1], "\"", "")
-			}
+			key := i[:equal]
+			value := strings.Trim(i[equal+1:], `"`)
+			m[key] = value
 		}
 	}
 	return m

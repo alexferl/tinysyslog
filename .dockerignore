@@ -1,15 +1,18 @@
-*.log
-.dockerignore
-.editorconfig
-.git
-.github
-.gitignore
-.golangci.yml
-.pre-commit-config.yaml
-.idea
-coverage.out
-kubernetes
-LICENSE
-README.md
-Makefile
-tinysyslog-bin
+# Ignore everything
+*
+
+# Allow go module files
+!go.mod
+!go.sum
+
+# Allow source code directories
+!cmd/
+!config/
+!constants/
+!factories/
+!filters/
+!mutators/
+!server/
+!sinks/
+!testing/
+!util/

@@ -32,7 +32,7 @@ help:
 GOTESTSUM := go run gotest.tools/gotestsum@latest -f testname -- ./... -race -count=1
 TESTFLAGS := -shuffle=on
 COVERFLAGS := -covermode=atomic
-GOLANGCI_LINT := go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.0.2
+GOLANGCI_LINT := go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
 
 check-pre-commit:
 ifeq (, $(shell which pre-commit))
